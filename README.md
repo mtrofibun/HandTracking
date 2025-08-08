@@ -1,2 +1,2 @@
-# HandTracking
-
+# HandTracking Program for Art Softwares
+Some drawing tablets aren’t equipped with the best shortcut buttons in addition to some not even having any of these buttons, or mouse artists like myself back in the day spent too much time dragging the mouse all over the screen to flip the screen. This program aims to allow users and artists to use hand motions to use shortcuts based on art programs (pc only), as well as allowing the user to modify whichever motion to their desired shortcuts.
