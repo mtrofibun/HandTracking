@@ -2,11 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Title</title>
+    <link rel = 'stylesheet' href = "style.css">
 </head>
 <body>
     <h1>Key Binds</h1>
-<label>Palm Hand : </label>
-<input type = "text" >
+    <hr>
+<div class = "box">
+<label id = "closed" for = "closed">Closed Hand : </label>
+<input type = "text" placeholder = "Zoom in" id = "closed" for = "closed">
+<img src = 'handgraphics/open.jpg' style = "width:100px; margin-left:50px;">
+</div>
+<hr>
+<div class = "box">
+<label id = "open">Open Hand : </label>
+<input type = "text" placeholder = "Space" id = "open">
+<img src = 'handgraphics/closed.jpg' style = "width:90px; margin-left:50px;">
+</div>
+<hr>
 </body>
 </html>
