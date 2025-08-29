@@ -1,24 +1,24 @@
 import webview
 from flask import Flask, render_template, request, jsonify
-import threading,os,json,cv2,pyautogui
+import threading,os,json,cv2,pyautogui, time
 import mediapipe as mp
 from pyparsing import results
 SAVE_FILE = 'saved_data.json'
 
-openvalue = 'Scroll Y'
-closedvalue = 'Scroll X'
-leftvalue = 'Ctrl + Z'
-rightvalue = 'Ctrl + X'
-fingervalue = 'b'
-peacevalue = 'e'
+openvalue = 'scroll Y'
+closedvalue = 'scroll X'
+leftvalue = 'ctrl Z'
+rightvalue = 'ctrl X'
+pointervalue = 'b'
+peacevalue = 'ctrl c'
 
-valuearray = [openvalue,closedvalue,leftvalue,rightvalue,fingervalue,peacevalue]
+valuearray = [openvalue,closedvalue,leftvalue,rightvalue,pointervalue,peacevalue]
 
-keybinds = { 'open' : openvalue,
+keybinds = { 'opened' : openvalue,
             'closed' : closedvalue,
             'left' : leftvalue,
             'right' : rightvalue,
-            'finger' : fingervalue,
+            'pointer' : pointervalue,
             'peace' : peacevalue,
             }
 # camera 
@@ -50,6 +50,14 @@ def is_pointer(hand_landmarks):
 
     return index_up and middle_down and ring_down and pinky_down
 
+def strip_input(keybindValue):
+    keybindValue = keybindValue.lower()
+    if len(keybindValue) > 0:
+        keybindValue = keybindValue.split(" ")
+
+
+    return keybindValue
+
 def is_peace_sign(hand_landmarks):
     landmarks = hand_landmarks.landmark
 
@@ -66,7 +74,7 @@ def is_peace_sign(hand_landmarks):
     return index_up and middle_up and ring_down and pinky_down and crossed_thumb
 
 
-peace_active = False
+buttonpresent = 0
 
 while cam.isOpened():
     ret,frame = cam.read()
@@ -87,17 +95,26 @@ while cam.isOpened():
         )
 
         if is_peace_sign(hand_landmarks):
+            newPeaceValue = strip_input(peacevalue)
+            if buttonpresent == 0:
+                buttonpresent += 1
+                if isinstance(newPeaceValue,list):
+                    pyautogui.hotkey(newPeaceValue[0],newPeaceValue[1])
+                else:
+                    pyautogui.press(newPeaceValue)
+                print('Peace sign detected')
+                print(newPeaceValue)
+
             cv2.putText(image, "Peace sign", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            pyautogui.press(peacevalue)
+
+
         if is_pointer(hand_landmarks):
             cv2.putText(image, "Pointer sign", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            if not peace_active:
-                pyautogui.press(fingervalue)
-                peace_active = True
-            else:
-                peace_active = False
+            pyautogui.press(pointervalue)
+            print('Pointer sign detected')
+
         # checking for hand movements
         #for id, lm in enumerate(hand_landmarks.landmark):
         #    x = int(lm.x * frame.shape[1])
@@ -125,12 +142,13 @@ def load():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE) as f:
             data = json.load(f)
-            keybinds.open.value = data.get('open',openvalue)
-            keybinds.closed.value = data.get('closed',closedvalue)
-            keybinds.left.value = data.get('left',leftvalue)
-            keybinds.right.value = data.get('left',rightvalue)
-            keybinds.finger.value = data.get('finger',fingervalue)
-            keybinds.peace.value = data.get('peace',peacevalue)
+            #try to fix this
+            keybinds['opened'] = data.get('opened',openvalue)
+            keybinds['closed'] = data.get('closed',closedvalue)
+            keybinds['left'] = data.get('left',leftvalue)
+            keybinds['right'] = data.get('right',rightvalue)
+            keybinds['pointer'] = data.get('pointer',pointervalue)
+            keybinds['peace'] = data.get('peace',peacevalue)
 
 app = Flask(__name__)
 

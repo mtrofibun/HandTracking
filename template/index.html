@@ -22,6 +22,12 @@
 <input type = "text" placeholder = "Space" id = "openInput">
 <img src = 'handgraphics/open.jpg' style = "width:100px; margin-left:50px;">
 </div>
+    <div class = "box">
+<label id = "pointer">Pointer finger : </label>
+<input type = "text" placeholder = "b" id = "pointerInput">
+<img src = 'handgraphics/open.jpg' style = "width:100px; margin-left:50px;">
+    </div>
+</div>
 
 <hr>
 
@@ -35,9 +41,10 @@
         fetch(`/api/load`)
         .then(res => res.json())
         .then(data => {
-            document.getElementById('closedInput').value = data.closed;
-            document.getElementById('openInput').value = data.open;
-            document.getElementById('')
+            /*try to name close smth different*/
+            document.getElementById('closedInput').value = data.close;
+            document.getElementById('openInput').value = data.opened;
+            document.getElementById('fingerInput').value = data.pointer;
         });
     };
 
@@ -45,12 +52,16 @@
 
         const closed = document.getElementById('closedInput').value;
         const opened = document.getElementById('openInput').value ;
+        const pointer = document.getElementById('pointerInput').value ;
 
         fetch('/api/buttonclick',{
             method : 'POST',
             headers : { 'Content-Type' : 'application/json'},
-            body : JSON.stringify({'open' : opened,
-                                    'closed' : closed})
+            body : JSON.stringify({
+                'opened': opened,
+                'close': closed,
+                'pointer': pointer
+            })
         })
         .then(res => res.json)
         .then(data => document.getElementById('response').textContent.message)
