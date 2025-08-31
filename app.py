@@ -10,12 +10,12 @@ closedvalue = 'scroll X'
 leftvalue = 'ctrl Z'
 rightvalue = 'ctrl X'
 pointervalue = 'b'
-peacevalue = 'ctrl c'
+peacevalue = 'e'
 
 valuearray = [openvalue,closedvalue,leftvalue,rightvalue,pointervalue,peacevalue]
 
 keybinds = { 'opened' : openvalue,
-            'closed' : closedvalue,
+            'closedOff' : closedvalue,
             'left' : leftvalue,
             'right' : rightvalue,
             'pointer' : pointervalue,
@@ -41,7 +41,7 @@ def is_pointer(hand_landmarks):
     landmarks = hand_landmarks.landmark
 
     FINGER_TIPS = [8,12,16,20]
-    FINGER_PIPS = [6,10,14,18]
+    FINGER_PIPS = [5,9,13,17]
 
     index_up = landmarks[FINGER_TIPS[0]].y < landmarks[FINGER_PIPS[0]].y
     middle_down = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
@@ -52,7 +52,7 @@ def is_pointer(hand_landmarks):
 
 def strip_input(keybindValue):
     keybindValue = keybindValue.lower()
-    if len(keybindValue) > 0:
+    if len(keybindValue) > 1:
         keybindValue = keybindValue.split(" ")
 
 
@@ -73,8 +73,21 @@ def is_peace_sign(hand_landmarks):
 
     return index_up and middle_up and ring_down and pinky_down and crossed_thumb
 
+def is_closed(hand_landmarks):
+    landmarks = hand_landmarks.landmark
 
-buttonpresent = 0
+    FINGER_TIPS = [8,12,16,20,8]
+    FINGER_PIPS = [5,9,13,17,4]
+
+    index_down = landmarks[FINGER_TIPS[0]].y > landmarks[FINGER_PIPS[0]].y
+    middle_down = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
+    ring_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
+    pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
+    #thumb_check = landmarks[FINGER_TIPS[4]].y > landmarks[FINGER_PIPS[4]].y
+
+    return index_down and middle_down and ring_down and pinky_down
+
+peaceCheck,pointerCheck,closedCheck = 0,0,0
 
 while cam.isOpened():
     ret,frame = cam.read()
@@ -96,8 +109,8 @@ while cam.isOpened():
 
         if is_peace_sign(hand_landmarks):
             newPeaceValue = strip_input(peacevalue)
-            if buttonpresent == 0:
-                buttonpresent += 1
+            if peaceCheck == 0:
+                peaceCheck += 1
                 if isinstance(newPeaceValue,list):
                     pyautogui.hotkey(newPeaceValue[0],newPeaceValue[1])
                 else:
@@ -107,14 +120,38 @@ while cam.isOpened():
 
             cv2.putText(image, "Peace sign", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-
+        else:
+            peaceCheck = 0
 
         if is_pointer(hand_landmarks):
             cv2.putText(image, "Pointer sign", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            pyautogui.press(pointervalue)
-            print('Pointer sign detected')
+            newPointerValue = strip_input(pointervalue)
+            if pointerCheck == 0:
+                pointerCheck += 1
+                if isinstance(newPointerValue,list):
+                    pyautogui.hotkey(newPointerValue[0],newPointerValue[1])
+                else:
+                    pyautogui.press(newPointerValue)
+                print('Pointer sign detected')
+                print(newPointerValue)
+        else:
+            pointerCheck = 0
 
+        if is_closed(hand_landmarks):
+            cv2.putText(image, "Closed hand", (50, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+            newClosedValue = strip_input(closedvalue)
+            if closedCheck == 0:
+                closedCheck += 1
+                if isinstance(newClosedValue,list):
+                    pyautogui.hotkey(newClosedValue[0],newClosedValue[1])
+                else:
+                    pyautogui.press(newClosedValue)
+                print('Closed hand detected')
+                print(newClosedValue)
+        else:
+            closedCheck = 0
         # checking for hand movements
         #for id, lm in enumerate(hand_landmarks.landmark):
         #    x = int(lm.x * frame.shape[1])
@@ -142,9 +179,8 @@ def load():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE) as f:
             data = json.load(f)
-            #try to fix this
             keybinds['opened'] = data.get('opened',openvalue)
-            keybinds['closed'] = data.get('closed',closedvalue)
+            keybinds['closedOff'] = data.get('closedOff',closedvalue)
             keybinds['left'] = data.get('left',leftvalue)
             keybinds['right'] = data.get('right',rightvalue)
             keybinds['pointer'] = data.get('pointer',pointervalue)

@@ -22,29 +22,38 @@
 <input type = "text" placeholder = "Space" id = "openInput">
 <img src = 'handgraphics/open.jpg' style = "width:100px; margin-left:50px;">
 </div>
+    <hr>
     <div class = "box">
 <label id = "pointer">Pointer finger : </label>
 <input type = "text" placeholder = "b" id = "pointerInput">
-<img src = 'handgraphics/open.jpg' style = "width:100px; margin-left:50px;">
+<img src = 'handgraphics/pointer.png' style = "width:100px; margin-left:50px;">
     </div>
+    <hr>
+<div class = "box">
+<label id = "peace">Peace Sign : </label>
+<input type = "text" placeholder = "e" id = "peaceInput">
+<img src = 'handgraphics/peace.png' style = "width:100px; margin-left:50px;">
+    </div>
+    <hr>
+
+
 </div>
 
 <hr>
+<h1 id = "response"></h1>
+<button id = "allchanges" onsubmit = sendData() >Submit All Changes</button>
 
-
-<button id = "allchanges">Submit All Changes</button>
-
-<p id = 'response'></p>
 </div>
 <script>
     window.onload = () => {
         fetch(`/api/load`)
         .then(res => res.json())
         .then(data => {
-            /*try to name close smth different*/
-            document.getElementById('closedInput').value = data.close;
+
+            document.getElementById('closedInput').value = data.closedOff;
             document.getElementById('openInput').value = data.opened;
             document.getElementById('fingerInput').value = data.pointer;
+            document.getElementById('peaceInput').value = data.peace;
         });
     };
 
@@ -52,19 +61,21 @@
 
         const closed = document.getElementById('closedInput').value;
         const opened = document.getElementById('openInput').value ;
-        const pointer = document.getElementById('pointerInput').value ;
+        const pointer = document.getElementById('pointerInput').value;
+        const peace = document.getElementById('peaceInput').value;
 
         fetch('/api/buttonclick',{
             method : 'POST',
             headers : { 'Content-Type' : 'application/json'},
             body : JSON.stringify({
                 'opened': opened,
-                'close': closed,
-                'pointer': pointer
+                'closedOff': closed,
+                'pointer': pointer,
+                'peace' : peace,
             })
         })
         .then(res => res.json)
-        .then(data => document.getElementById('response').textContent.message)
+        .then(data => document.getElementById('response').textContent = data.message)
     }
 </script>
 </body>
