@@ -5,8 +5,8 @@ import mediapipe as mp
 from pyparsing import results
 SAVE_FILE = 'saved_data.json'
 
-openvalue = 'scroll Y'
-closedvalue = 'scroll X'
+openvalue = 'scroll'
+closedvalue = 'scroll'
 leftvalue = 'ctrl Z'
 rightvalue = 'ctrl X'
 pointervalue = 'b'
@@ -51,12 +51,20 @@ def is_pointer(hand_landmarks):
     return index_up and middle_down and ring_down and pinky_down
 
 def strip_input(keybindValue):
+    scrollenabled = False
     keybindValue = keybindValue.lower()
+    if keybindValue == 'scroll':
+        scrollenabled = True
     if len(keybindValue) > 1:
         keybindValue = keybindValue.split(" ")
 
+    return keybindValue,scrollenabled
 
-    return keybindValue
+def enable_keybind(value):
+        if isinstance(value, list):
+            pyautogui.hotkey(value[0], value[1])
+        else:
+            pyautogui.press(value)
 
 def is_peace_sign(hand_landmarks):
     landmarks = hand_landmarks.landmark
@@ -108,13 +116,13 @@ while cam.isOpened():
         )
 
         if is_peace_sign(hand_landmarks):
-            newPeaceValue = strip_input(peacevalue)
+            newPeaceValue,scrollenabled = strip_input(peacevalue)
             if peaceCheck == 0:
                 peaceCheck += 1
-                if isinstance(newPeaceValue,list):
-                    pyautogui.hotkey(newPeaceValue[0],newPeaceValue[1])
+                if scrollenabled == True:
+                    pyautogui.scroll(-50)
                 else:
-                    pyautogui.press(newPeaceValue)
+                    enable_keybind(newPeaceValue)
                 print('Peace sign detected')
                 print(newPeaceValue)
 
@@ -126,13 +134,13 @@ while cam.isOpened():
         if is_pointer(hand_landmarks):
             cv2.putText(image, "Pointer sign", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newPointerValue = strip_input(pointervalue)
+            newPointerValue,scrollenabled = strip_input(pointervalue)
             if pointerCheck == 0:
                 pointerCheck += 1
-                if isinstance(newPointerValue,list):
-                    pyautogui.hotkey(newPointerValue[0],newPointerValue[1])
+                if scrollenabled == True:
+                    pyautogui.scroll(-50)
                 else:
-                    pyautogui.press(newPointerValue)
+                    enable_keybind(newPointerValue)
                 print('Pointer sign detected')
                 print(newPointerValue)
         else:
@@ -141,15 +149,15 @@ while cam.isOpened():
         if is_closed(hand_landmarks):
             cv2.putText(image, "Closed hand", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newClosedValue = strip_input(closedvalue)
-            if closedCheck == 0:
-                closedCheck += 1
-                if isinstance(newClosedValue,list):
-                    pyautogui.hotkey(newClosedValue[0],newClosedValue[1])
-                else:
-                    pyautogui.press(newClosedValue)
-                print('Closed hand detected')
-                print(newClosedValue)
+            newClosedValue, scrollenabled = strip_input(closedvalue)
+            if scrollenabled == True:
+                pyautogui.scroll(-50)
+            else:
+                if closedCheck == 0:
+                    closedCheck += 1
+                    enable_keybind(newClosedValue)
+                    print('Closed hand detected')
+                    print(newClosedValue)
         else:
             closedCheck = 0
         # checking for hand movements
