@@ -16,12 +16,6 @@
 <input type = "text" placeholder = "Zoom in" id = "closedInput" for = "closed">
 <img src = 'handgraphics/closed.jpg' style = "width:90px; margin-left:50px;">
 </div>
-<hr>
-<div class = "box">
-<label id = "open">Open Hand : </label>
-<input type = "text" placeholder = "Space" id = "openInput">
-<img src = 'handgraphics/open.jpg' style = "width:100px; margin-left:50px;">
-</div>
     <hr>
     <div class = "box">
 <label id = "pointer">Pointer finger : </label>
@@ -33,6 +27,18 @@
 <label id = "peace">Peace Sign : </label>
 <input type = "text" placeholder = "e" id = "peaceInput">
 <img src = 'handgraphics/peace.png' style = "width:100px; margin-left:50px;">
+    </div>
+    <hr>
+    <div class = "box">
+<label id = "pinch1">Pinch In : </label>
+<input type = "text" placeholder = "e" id = "pinch1Input">
+<img src = 'handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
+    </div>
+    <hr>
+       <div class = "box">
+<label id = "pinch2">Pinch Out : </label>
+<input type = "text" placeholder = "e" id = "pinch2Input">
+<img src = 'handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
     </div>
     <hr>
 
@@ -51,27 +57,30 @@
         .then(data => {
 
             document.getElementById('closedInput').value = data.closedOff;
-            document.getElementById('openInput').value = data.opened;
             document.getElementById('fingerInput').value = data.pointer;
             document.getElementById('peaceInput').value = data.peace;
+            document.getElementById('pinch1Input').value = data.pinch1value;
+            document.getElementById('pinch2Input').value = data.pinch2value;
         });
     };
 
     function sendData(){
 
         const closed = document.getElementById('closedInput').value;
-        const opened = document.getElementById('openInput').value ;
         const pointer = document.getElementById('pointerInput').value;
         const peace = document.getElementById('peaceInput').value;
+        const pinch1 = document.getElementById('pinch1Input').value;
+        const pinch2 = document.getElementById('pinch2Input').value;
 
         fetch('/api/buttonclick',{
             method : 'POST',
             headers : { 'Content-Type' : 'application/json'},
             body : JSON.stringify({
-                'opened': opened,
                 'closedOff': closed,
                 'pointer': pointer,
                 'peace' : peace,
+                'pinch1' : pinch1,
+                'pinch2': pinch2
             })
         })
         .then(res => res.json)

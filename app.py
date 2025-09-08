@@ -5,21 +5,23 @@ import mediapipe as mp
 from pyparsing import results
 SAVE_FILE = 'saved_data.json'
 
-openvalue = 'scroll out'
-closedvalue = 'scroll in'
-leftvalue = 'ctrl Z'
-rightvalue = 'ctrl X'
+closedvalue = 'ctrl z'
+leftvalue = 'ctrl z'
+rightvalue = 'ctrl x'
 pointervalue = 'b'
 peacevalue = 'e'
+pinch1value = 'scroll in'
+pinch2value = 'scroll out'
 
-valuearray = [openvalue,closedvalue,leftvalue,rightvalue,pointervalue,peacevalue]
+valuearray = [closedvalue,leftvalue,rightvalue,pointervalue,peacevalue,pinch1value,pinch2value]
 
-keybinds = { 'opened' : openvalue,
-            'closedOff' : closedvalue,
+keybinds = { 'closedOff' : closedvalue,
             'left' : leftvalue,
             'right' : rightvalue,
             'pointer' : pointervalue,
             'peace' : peacevalue,
+             'pinch1' : pinch1value,
+             'pinch2' : pinch2value,
             }
 # camera 
 mp_drawing = mp.solutions.drawing_utils
@@ -37,6 +39,24 @@ cam = cv2.VideoCapture(0)
 frame_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+def strip_input(keybindValue):
+    keybindValue = keybindValue.lower()
+    if len(keybindValue) > 1:
+        keybindValue = keybindValue.split(" ")
+        if keybindValue[0] == 'scroll':
+            if keybindValue[1] == 'out':
+                keybindValue = '120'
+            else:
+                keybindValue = '-120'
+            keybindValue = int(keybindValue)
+    return keybindValue
+
+def enable_keybind(value):
+        if isinstance(value, list):
+            pyautogui.hotkey(value[0], value[1])
+        else:
+            pyautogui.press(value)
+
 def is_pointer(hand_landmarks):
     landmarks = hand_landmarks.landmark
 
@@ -50,27 +70,6 @@ def is_pointer(hand_landmarks):
 
     return index_up and middle_down and ring_down and pinky_down
 
-def strip_input(keybindValue):
-    scrollenabled = False
-    scrollvalue = 0
-    keybindValue = keybindValue.lower()
-    if len(keybindValue) > 1:
-        keybindValue = keybindValue.split(" ")
-        # remove this when improving, you can just do if scrollvalue != 0:b
-        # pyautogui.scroll(scrollvalue)
-        if keybindValue[0] == 'scroll':
-            scrollenabled = True
-            if keybindValue[1] == 'out':
-                scrollvalue = 100
-            else:
-                scrollvalue = -100
-    return keybindValue,scrollenabled,scrollvalue
-
-def enable_keybind(value):
-        if isinstance(value, list):
-            pyautogui.hotkey(value[0], value[1])
-        else:
-            pyautogui.press(value)
 
 def is_peace_sign(hand_landmarks):
     landmarks = hand_landmarks.landmark
@@ -78,7 +77,6 @@ def is_peace_sign(hand_landmarks):
     FINGER_TIPS = [8, 12, 16, 20,4]
     FINGER_PIPS = [6, 10, 14, 18,12]
 
-    # Peace sign: index & middle up, ring & pinky down
     index_up = landmarks[FINGER_TIPS[0]].y < landmarks[FINGER_PIPS[0]].y
     middle_up = landmarks[FINGER_TIPS[1]].y < landmarks[FINGER_PIPS[1]].y
     ring_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
@@ -97,7 +95,6 @@ def is_closed(hand_landmarks):
     middle_down = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
     ring_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
     pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
-    #thumb_check = landmarks[FINGER_TIPS[4]].y > landmarks[FINGER_PIPS[4]].y
 
     return index_down and middle_down and ring_down and pinky_down
 
@@ -113,15 +110,36 @@ def is_pinch(hand_landmarks):
     pointer_tip = landmarks[8]
     thumb_tip = landmarks[4]
 
+    FINGERS1 = [12,16,20]
+    FINGERS2 = [9, 13, 17]
+
+    middle_up = landmarks[FINGERS1[0]].y < landmarks[FINGERS2[0]].y
+    ring_up = landmarks[FINGERS1[1]].y < landmarks[FINGERS2[1]].y
+    pinky_up = landmarks[FINGERS1[2]].y < landmarks[FINGERS2[2]].y
+
     distance = track_distance(pointer_tip,thumb_tip)
-    if distance < 0.05:
-        return pointer_tip and thumb_tip
+    if distance < 0.06:
+        return middle_up and ring_up and pinky_up
     return None
 
+def is_pinch_2(hand_landmarks):
+    landmarks = hand_landmarks.landmark
+    pointer_tip = landmarks[8]
+    thumb_tip = landmarks[4]
 
-peaceCheck,pointerCheck,closedCheck,openCheck = 0,0,0,0
-# maybe create distance check so you don't have to rewrite
-# (ensure its within cam opened so it's always checking + ensure within pointer and closed hand)
+    FINGERS1 = [12, 16, 20]
+    FINGERS2 = [9, 13, 17]
+
+    middle_up = landmarks[FINGERS1[0]].y < landmarks[FINGERS2[0]].y
+    ring_up = landmarks[FINGERS1[1]].y < landmarks[FINGERS2[1]].y
+    pinky_up = landmarks[FINGERS1[2]].y < landmarks[FINGERS2[2]].y
+
+    distance = track_distance(pointer_tip, thumb_tip)
+    if distance > 0.06 and distance < 0.14 and middle_up and ring_up and pinky_up:
+        return True
+    return None
+
+peaceCheck,pointerCheck,closedCheck,pinch1Check,pinch2Check = 0,0,0,0,0
 
 while cam.isOpened():
     ret,frame = cam.read()
@@ -140,17 +158,17 @@ while cam.isOpened():
         mp_drawing.draw_landmarks(
                 image, hand_landmarks, mp_hands.HAND_CONNECTIONS,
         )
-
+        pinchCheckPoint = track_distance(hand_landmarks.landmark[8], hand_landmarks.landmark[4])
         if is_peace_sign(hand_landmarks):
-            newPeaceValue,scrollenabled,scrollvalue = strip_input(peacevalue)
-            if peaceCheck == 0:
-                peaceCheck += 1
-                if scrollenabled == True:
-                    pyautogui.scroll(scrollvalue)
-                else:
+            newPeaceValue = strip_input(peacevalue)
+            if isinstance(newPeaceValue, int):
+                pyautogui.scroll(newPeaceValue)
+            else:
+                if peaceCheck == 0:
+                    peaceCheck += 1
                     enable_keybind(newPeaceValue)
-                print('Peace sign detected')
-                print(newPeaceValue)
+                    print('Peace Sign detected')
+                    print(newPeaceValue)
 
             cv2.putText(image, "Peace sign", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
@@ -160,24 +178,25 @@ while cam.isOpened():
         if is_pointer(hand_landmarks):
             cv2.putText(image, "Pointer sign", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newPointerValue,scrollenabled,scrollvalue = strip_input(pointervalue)
-            if pointerCheck == 0:
-                pointerCheck += 1
-                if scrollenabled == True:
-                    pyautogui.scroll(scrollvalue)
-                else:
+            newPointerValue = strip_input(pointervalue)
+            if isinstance(newPointerValue, int):
+                pyautogui.scroll(newPointerValue)
+            else:
+                if pointerCheck == 0:
+                    pointerCheck += 1
                     enable_keybind(newPointerValue)
-                print('Pointer sign detected')
-                print(newPointerValue)
+                    print('Pointer sign detected')
+                    print(newPointerValue)
+                    print(pointerCheck)
         else:
             pointerCheck = 0
 
-        if is_closed(hand_landmarks) and track_distance(hand_landmarks.landmark[8],hand_landmarks.landmark[4]) > 0.05:
+        if is_closed(hand_landmarks) :
             cv2.putText(image, "Closed hand", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newClosedValue, scrollenabled,scrollvalue = strip_input(closedvalue)
-            if scrollenabled == True:
-                pyautogui.scroll(scrollvalue)
+            newClosedValue = strip_input(closedvalue)
+            if isinstance(newClosedValue, int):
+                pyautogui.scroll(newClosedValue)
             else:
                 if closedCheck == 0:
                     closedCheck += 1
@@ -189,8 +208,32 @@ while cam.isOpened():
 
         if is_pinch(hand_landmarks):
             cv2.putText(image, "Pinch sign", (50, 50),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+            newPinchValue = strip_input(pinch1value)
+            if isinstance(newPinchValue, int):
+                pyautogui.scroll(newPinchValue)
+            else:
+                if pinch1Check == 0:
+                    pinch1Check += 1
+                    enable_keybind(newPinchValue)
+                print('Pinch1 hand detected')
+                print(newPinchValue)
+        else:
+            pinch1Check = 0
 
 
+        if is_pinch_2(hand_landmarks):
+            cv2.putText(image, "Pinch sign 2", (50, 50),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+            newPinchValue = strip_input(pinch2value)
+            if isinstance(newPinchValue, int):
+                pyautogui.scroll(newPinchValue)
+            else:
+                if pinch2Check == 0:
+                    pinch2Check += 1
+                    enable_keybind(newPinchValue)
+                print('Pinch2 hand detected')
+                print(newPinchValue)
+        else:
+            pinch2Check = 0
 
 
         # checking for hand movements
@@ -220,12 +263,13 @@ def load():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE) as f:
             data = json.load(f)
-            keybinds['opened'] = data.get('opened',openvalue)
             keybinds['closedOff'] = data.get('closedOff',closedvalue)
             keybinds['left'] = data.get('left',leftvalue)
             keybinds['right'] = data.get('right',rightvalue)
             keybinds['pointer'] = data.get('pointer',pointervalue)
             keybinds['peace'] = data.get('peace',peacevalue)
+            keybinds['pinch1'] = data.get('pinch1',pinch1value)
+            keybinds['pinch2'] = data.get('pinch2', pinch2value)
 
 app = Flask(__name__)
 
