@@ -12,16 +12,16 @@ pointervalue = 'b'
 peacevalue = 'e'
 pinch1value = 'scroll in'
 pinch2value = 'scroll out'
+threevalue = 'i'
 
 valuearray = [closedvalue,leftvalue,rightvalue,pointervalue,peacevalue,pinch1value,pinch2value]
 
 keybinds = { 'closedOff' : closedvalue,
-            'left' : leftvalue,
-            'right' : rightvalue,
             'pointer' : pointervalue,
             'peace' : peacevalue,
              'pinch1' : pinch1value,
              'pinch2' : pinch2value,
+             'three' : threevalue
             }
 # camera 
 mp_drawing = mp.solutions.drawing_utils
@@ -68,7 +68,9 @@ def is_pointer(hand_landmarks):
     ring_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
     pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
 
-    return index_up and middle_down and ring_down and pinky_down
+    if index_up and middle_down and ring_down and pinky_down:
+        return True
+    return False
 
 
 def is_peace_sign(hand_landmarks):
@@ -83,7 +85,9 @@ def is_peace_sign(hand_landmarks):
     pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
     crossed_thumb = landmarks[FINGER_TIPS[4]].y > landmarks[FINGER_PIPS[4]].y
 
-    return index_up and middle_up and ring_down and pinky_down and crossed_thumb
+    if index_up and middle_up and ring_down and pinky_down and crossed_thumb:
+        return True
+    return False
 
 def is_closed(hand_landmarks):
     landmarks = hand_landmarks.landmark
@@ -96,11 +100,13 @@ def is_closed(hand_landmarks):
     ring_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
     pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
 
-    return index_down and middle_down and ring_down and pinky_down
+    if index_down and middle_down and ring_down and pinky_down:
+        return True
+    return False
 
 def track_distance(p1,p2):
-
-    distance = math.sqrt( (p1.x - p2.x)**2 +
+    distance = math.sqrt(
+        (p1.x - p2.x)**2 +
         (p1.y - p2.y)**2 +
         (p1.z - p2.z)**2)
     return distance
@@ -120,7 +126,7 @@ def is_pinch(hand_landmarks):
     distance = track_distance(pointer_tip,thumb_tip)
     if distance < 0.06:
         return middle_up and ring_up and pinky_up
-    return None
+    return False
 
 def is_pinch_2(hand_landmarks):
     landmarks = hand_landmarks.landmark
@@ -135,11 +141,25 @@ def is_pinch_2(hand_landmarks):
     pinky_up = landmarks[FINGERS1[2]].y < landmarks[FINGERS2[2]].y
 
     distance = track_distance(pointer_tip, thumb_tip)
-    if distance > 0.06 and distance < 0.14 and middle_up and ring_up and pinky_up:
+    if 0.08 < distance < 0.20 and middle_up and ring_up and pinky_up:
         return True
-    return None
+    return False
 
-peaceCheck,pointerCheck,closedCheck,pinch1Check,pinch2Check = 0,0,0,0,0
+def is_three(hand_landmarks):
+    landmarks = hand_landmarks.landmark
+
+    FINGER_TIPS = [8,12,16,20]
+    FINGER_PIPS = [5,9,13,17]
+
+    index_up = landmarks[FINGER_TIPS[0]].y < landmarks[FINGER_PIPS[0]].y
+    middle_up = landmarks[FINGER_TIPS[1]].y < landmarks[FINGER_PIPS[1]].y
+    pointer_up = landmarks[FINGER_TIPS[2]].y < landmarks[FINGER_PIPS[2]].y
+    pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
+    if index_up and middle_up and pointer_up and pinky_down:
+        return True
+    return False
+
+peaceCheck,pointerCheck,closedCheck,pinch1Check,pinch2Check,threeCheck = 0,0,0,0,0,0
 
 while cam.isOpened():
     ret,frame = cam.read()
@@ -235,7 +255,17 @@ while cam.isOpened():
         else:
             pinch2Check = 0
 
-
+        if is_three(hand_landmarks):
+            cv2.putText(image, "Three", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+            newThreeValue = strip_input(threevalue)
+            if isinstance(newThreeValue, int):
+                pyautogui.scroll(newThreeValue)
+            else:
+                if threeCheck == 0:
+                    threeCheck += 1
+                    enable_keybind(newThreeValue)
+        else:
+            threeCheck = 0
         # checking for hand movements
         #for id, lm in enumerate(hand_landmarks.landmark):
         #    x = int(lm.x * frame.shape[1])
