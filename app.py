@@ -5,23 +5,26 @@ import mediapipe as mp
 from pyparsing import results
 SAVE_FILE = 'saved_data.json'
 
-closedvalue = 'ctrl z'
-leftvalue = 'ctrl z'
-rightvalue = 'ctrl x'
+#https://github.com/r0x0r/pywebview/blob/master/examples/localhost_ssl.py
+
+closedvalue = 'ctrl x'
 pointervalue = 'b'
 peacevalue = 'e'
-pinch1value = 'scroll in'
-pinch2value = 'scroll out'
-threevalue = 'i'
+pinch1value = 'n'
+pinch2value = 'm'
+rockervalue = 'i'
 
-valuearray = [closedvalue,leftvalue,rightvalue,pointervalue,peacevalue,pinch1value,pinch2value]
+#need undo and redo gesture
+
+
+valuearray = [closedvalue,pointervalue,peacevalue,pinch1value,pinch2value]
 
 keybinds = { 'closedOff' : closedvalue,
             'pointer' : pointervalue,
             'peace' : peacevalue,
              'pinch1' : pinch1value,
              'pinch2' : pinch2value,
-             'three' : threevalue
+             'rocker' : rockervalue
             }
 # camera 
 mp_drawing = mp.solutions.drawing_utils
@@ -45,9 +48,9 @@ def strip_input(keybindValue):
         keybindValue = keybindValue.split(" ")
         if keybindValue[0] == 'scroll':
             if keybindValue[1] == 'out':
-                keybindValue = '120'
+                keybindValue = '100'
             else:
-                keybindValue = '-120'
+                keybindValue = '-100'
             keybindValue = int(keybindValue)
     return keybindValue
 
@@ -68,7 +71,13 @@ def is_pointer(hand_landmarks):
     ring_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
     pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
 
-    if index_up and middle_down and ring_down and pinky_down:
+
+
+    distance = track_distance(landmarks[8], landmarks[4])
+
+    print(distance)
+
+    if index_up and middle_down and ring_down and pinky_down and distance > 0.15:
         return True
     return False
 
@@ -85,7 +94,8 @@ def is_peace_sign(hand_landmarks):
     pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
     crossed_thumb = landmarks[FINGER_TIPS[4]].y > landmarks[FINGER_PIPS[4]].y
 
-    if index_up and middle_up and ring_down and pinky_down and crossed_thumb:
+
+    if index_up and middle_up and ring_down and pinky_down:
         return True
     return False
 
@@ -116,16 +126,17 @@ def is_pinch(hand_landmarks):
     pointer_tip = landmarks[8]
     thumb_tip = landmarks[4]
 
-    FINGERS1 = [12,16,20]
-    FINGERS2 = [9, 13, 17]
+    FINGERS1 = [12,16,20,8]
+    FINGERS2 = [9, 13, 17,5]
 
-    middle_up = landmarks[FINGERS1[0]].y < landmarks[FINGERS2[0]].y
-    ring_up = landmarks[FINGERS1[1]].y < landmarks[FINGERS2[1]].y
-    pinky_up = landmarks[FINGERS1[2]].y < landmarks[FINGERS2[2]].y
+    middle_down = landmarks[FINGERS1[0]].y > landmarks[FINGERS2[0]].y
+    ring_down = landmarks[FINGERS1[1]].y > landmarks[FINGERS2[1]].y
+    pinky_down = landmarks[FINGERS1[2]].y > landmarks[FINGERS2[2]].y
+    pointer_up = landmarks[FINGERS1[3]].y > landmarks[FINGERS2[3]].y
 
     distance = track_distance(pointer_tip,thumb_tip)
-    if distance < 0.06:
-        return middle_up and ring_up and pinky_up
+    if distance < 0.06 and middle_down and ring_down and pinky_down and not pointer_up:
+        return True
     return False
 
 def is_pinch_2(hand_landmarks):
@@ -133,33 +144,34 @@ def is_pinch_2(hand_landmarks):
     pointer_tip = landmarks[8]
     thumb_tip = landmarks[4]
 
-    FINGERS1 = [12, 16, 20]
-    FINGERS2 = [9, 13, 17]
+    FINGERS1 = [12, 16, 20, 8]
+    FINGERS2 = [9, 13, 17, 5]
 
-    middle_up = landmarks[FINGERS1[0]].y < landmarks[FINGERS2[0]].y
-    ring_up = landmarks[FINGERS1[1]].y < landmarks[FINGERS2[1]].y
-    pinky_up = landmarks[FINGERS1[2]].y < landmarks[FINGERS2[2]].y
+    middle_down = landmarks[FINGERS1[0]].y > landmarks[FINGERS2[0]].y
+    ring_down = landmarks[FINGERS1[1]].y > landmarks[FINGERS2[1]].y
+    pinky_down = landmarks[FINGERS1[2]].y > landmarks[FINGERS2[2]].y
+    pointer_up = landmarks[FINGERS1[3]].y < landmarks[FINGERS2[3]].y
 
     distance = track_distance(pointer_tip, thumb_tip)
-    if 0.08 < distance < 0.20 and middle_up and ring_up and pinky_up:
+    if 0.08 < distance < 0.15 and middle_down and ring_down and pinky_down and pointer_up:
         return True
     return False
 
-def is_three(hand_landmarks):
+def is_rocker(hand_landmarks):
     landmarks = hand_landmarks.landmark
 
     FINGER_TIPS = [8,12,16,20]
     FINGER_PIPS = [5,9,13,17]
 
     index_up = landmarks[FINGER_TIPS[0]].y < landmarks[FINGER_PIPS[0]].y
-    middle_up = landmarks[FINGER_TIPS[1]].y < landmarks[FINGER_PIPS[1]].y
-    pointer_up = landmarks[FINGER_TIPS[2]].y < landmarks[FINGER_PIPS[2]].y
-    pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
+    middle_up = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
+    pointer_up = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
+    pinky_down = landmarks[FINGER_TIPS[3]].y < landmarks[FINGER_PIPS[3]].y
     if index_up and middle_up and pointer_up and pinky_down:
         return True
     return False
 
-peaceCheck,pointerCheck,closedCheck,pinch1Check,pinch2Check,threeCheck = 0,0,0,0,0,0
+peaceCheck,pointerCheck,closedCheck,pinch1Check,pinch2Check,rockerCheck = 0,0,0,0,0,0
 
 while cam.isOpened():
     ret,frame = cam.read()
@@ -255,25 +267,28 @@ while cam.isOpened():
         else:
             pinch2Check = 0
 
-        if is_three(hand_landmarks):
-            cv2.putText(image, "Three", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newThreeValue = strip_input(threevalue)
-            if isinstance(newThreeValue, int):
-                pyautogui.scroll(newThreeValue)
+        if is_rocker(hand_landmarks):
+            cv2.putText(image, "rocker", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+            newrockerValue = strip_input(rockervalue)
+            if isinstance(newrockerValue, int):
+                pyautogui.scroll(newrockerValue)
             else:
-                if threeCheck == 0:
-                    threeCheck += 1
-                    enable_keybind(newThreeValue)
+                if rockerCheck == 0:
+                    rockerCheck += 1
+                    enable_keybind(newrockerValue)
         else:
-            threeCheck = 0
+            rockerCheck = 0
         # checking for hand movements
         #for id, lm in enumerate(hand_landmarks.landmark):
         #    x = int(lm.x * frame.shape[1])
         #    y = int(lm.y * frame.shape[0])
         #    print(f"Landmark {id}: {lm}")
+
+
     cv2.imshow("Handtracking", image)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
 
 
 
@@ -293,13 +308,12 @@ def load():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE) as f:
             data = json.load(f)
-            keybinds['closedOff'] = data.get('closedOff',closedvalue)
-            keybinds['left'] = data.get('left',leftvalue)
-            keybinds['right'] = data.get('right',rightvalue)
-            keybinds['pointer'] = data.get('pointer',pointervalue)
-            keybinds['peace'] = data.get('peace',peacevalue)
-            keybinds['pinch1'] = data.get('pinch1',pinch1value)
+            keybinds['closedOff'] = data.get('closedOff', closedvalue)
+            keybinds['pointer'] = data.get('pointer', pointervalue)
+            keybinds['peace'] = data.get('peace', peacevalue)
+            keybinds['pinch1'] = data.get('pinch1', pinch1value)
             keybinds['pinch2'] = data.get('pinch2', pinch2value)
+            keybinds['rocker'] = data.get('rocker', rockervalue)
 
 app = Flask(__name__)
 
@@ -309,15 +323,25 @@ def home():
 
 @app.route('/api/load')
 def load_route():
-    return jsonify(keybinds)
+    with open(SAVE_FILE,'r') as f:
+        data = json.load(f)
+        print("loading", data)
+        return data['finalKeybinds']
 
 @app.route('/api/buttonclick',methods=['POST'])
 def button_click():
     data = request.get_json()
-    for keys in keybinds.keys():
-        keys.value = data.value
 
-    save(keybinds)
+    save(data)
     message = "Changes are saved"
     print('Changes have been saved')
     return jsonify({"message": message})
+
+def start_flask():
+    app.run(host="127.0.0.1", port=5000)
+
+if __name__ == '__main__':
+    threading.Thread(target=start_flask, daemon=True).start()
+
+    webview.create_window('Handtracking Application',"http://127.0.0.1:5000/")
+    webview.start()

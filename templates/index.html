@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title</title>
+    <link rel = 'stylesheet' href = "../static/style.css">
+</head>
+<body>
+<div class ="binds">
+<h1>Key Binds</h1>
+<hr>
+
+<div class = "box">
+<label id = "closed" for = "closed">Closed Hand : </label>
+<input type = "text" placeholder = "Zoom in" id = "closedInput" for = "closed">
+<img src = '../static/handgraphics/closed.jpg' style = "width:90px; margin-left:50px;">
+</div>
+    <hr>
+    <div class = "box">
+<label id = "pointer">Pointer finger : </label>
+<input type = "text" placeholder = "b" id = "pointerInput">
+<img src = '../static/handgraphics/pointer.png' style = "width:100px; margin-left:50px;">
+    </div>
+    <hr>
+<div class = "box">
+<label id = "peace">Peace Sign : </label>
+<input type = "text" placeholder = "e" id = "peaceInput">
+<img src = '../static/handgraphics/peace.png' style = "width:100px; margin-left:50px;">
+    </div>
+    <hr>
+    <div class = "box">
+<label id = "pinch1">Pinch In : </label>
+<input type = "text" placeholder = "e" id = "pinch1Input">
+<img src = '../static/handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
+    </div>
+    <hr>
+       <div class = "box">
+<label id = "pinch2">Pinch Out : </label>
+<input type = "text" placeholder = "e" id = "pinch2Input">
+<img src = '../static/handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
+    </div>
+    <hr>
+    <div class = "box">
+<label id = "rocker">Rocker Sign : </label>
+<input type = "text" placeholder = "e" id = "rockerInput">
+<img src = '../static/handgraphics/rocker.png' style = "width:100px; margin-left:50px;">
+    </div>
+    <hr>
+
+
+</div>
+
+<hr>
+<h1 id = "response"></h1>
+<button id = "allchanges" onclick = "sendData()" >Submit All Changes</button>
+
+</div>
+<script>
+window.onload = () => {
+    fetch(`/api/load`)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('closedInput').value = data.closedOff;
+        document.getElementById('pointerInput').value = data.pointer;
+        document.getElementById('peaceInput').value = data.peace;
+        document.getElementById('pinch1Input').value = data.pinch1value;
+        document.getElementById('pinch2Input').value = data.pinch2value;
+        document.getElementById('rockerInput').value = data.rocker;
+    })
+    .catch(err => console.error("Error loading data:", err));
+};
+
+function sendData() {
+    const finalKeybinds = {
+        closedOff: document.getElementById('closedInput').value,
+        pointer: document.getElementById('pointerInput').value,
+        peace: document.getElementById('peaceInput').value,
+        pinch1: document.getElementById('pinch1Input').value,
+        pinch2: document.getElementById('pinch2Input').value,
+        rocker: document.getElementById('rockerInput').value
+    };
+
+    console.log("Sending finalKeybinds:", finalKeybinds);
+
+    fetch('/api/buttonclick', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ finalKeybinds })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('response').textContent = data.message;
+    })
+    .catch(err => console.error("Error calling API:", err));
+}
+</script>
+
+</body>
+</html>
