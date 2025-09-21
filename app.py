@@ -1,5 +1,5 @@
 import webview
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify,Response
 import threading,os,json,cv2,pyautogui, math
 import mediapipe as mp
 from pyparsing import results
@@ -7,15 +7,15 @@ SAVE_FILE = 'saved_data.json'
 
 #https://github.com/r0x0r/pywebview/blob/master/examples/localhost_ssl.py
 
-closedvalue = 'ctrl x'
+# TO:DO switch assignment to the json
+# need undo and redo gesture
+# add hide camera button
+closedvalue = 'ctrl z'
 pointervalue = 'b'
 peacevalue = 'e'
-pinch1value = 'n'
-pinch2value = 'm'
+pinch1value = 'scroll in'
+pinch2value = 'scroll out'
 rockervalue = 'i'
-
-#need undo and redo gesture
-
 
 valuearray = [closedvalue,pointervalue,peacevalue,pinch1value,pinch2value]
 
@@ -75,7 +75,6 @@ def is_pointer(hand_landmarks):
 
     distance = track_distance(landmarks[8], landmarks[4])
 
-    print(distance)
 
     if index_up and middle_down and ring_down and pinky_down and distance > 0.15:
         return True
@@ -173,127 +172,121 @@ def is_rocker(hand_landmarks):
 
 peaceCheck,pointerCheck,closedCheck,pinch1Check,pinch2Check,rockerCheck = 0,0,0,0,0,0
 
-while cam.isOpened():
-    ret,frame = cam.read()
-    if not ret:
-        break
+def gen_frames():
+    global peaceCheck, pointerCheck, closedCheck, pinch1Check, pinch2Check, rockerCheck
 
-    frame = cv2.flip(frame,1)
-    image=  cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+    cam = cv2.VideoCapture(0)
 
-    results = hands.process(image)
+    with mp_hands.Hands(
+        max_num_hands=2,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5
+    ) as hands:
 
-    image = cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
+        while cam.isOpened():
+            ret, frame = cam.read()
+            if not ret:
+                break
 
-    if results.multi_hand_landmarks:
-        hand_landmarks = results.multi_hand_landmarks[0]
-        mp_drawing.draw_landmarks(
-                image, hand_landmarks, mp_hands.HAND_CONNECTIONS,
-        )
-        pinchCheckPoint = track_distance(hand_landmarks.landmark[8], hand_landmarks.landmark[4])
-        if is_peace_sign(hand_landmarks):
-            newPeaceValue = strip_input(peacevalue)
-            if isinstance(newPeaceValue, int):
-                pyautogui.scroll(newPeaceValue)
-            else:
-                if peaceCheck == 0:
-                    peaceCheck += 1
-                    enable_keybind(newPeaceValue)
-                    print('Peace Sign detected')
-                    print(newPeaceValue)
+            frame = cv2.flip(frame, 1)
+            image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-            cv2.putText(image, "Peace sign", (50, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-        else:
-            peaceCheck = 0
+            results = hands.process(image)
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-        if is_pointer(hand_landmarks):
-            cv2.putText(image, "Pointer sign", (50, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newPointerValue = strip_input(pointervalue)
-            if isinstance(newPointerValue, int):
-                pyautogui.scroll(newPointerValue)
-            else:
-                if pointerCheck == 0:
-                    pointerCheck += 1
-                    enable_keybind(newPointerValue)
-                    print('Pointer sign detected')
-                    print(newPointerValue)
-                    print(pointerCheck)
-        else:
-            pointerCheck = 0
+            if results.multi_hand_landmarks:
+                hand_landmarks = results.multi_hand_landmarks[0]
+                mp_drawing.draw_landmarks(
+                    image, hand_landmarks, mp_hands.HAND_CONNECTIONS
+                )
 
-        if is_closed(hand_landmarks) :
-            cv2.putText(image, "Closed hand", (50, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newClosedValue = strip_input(closedvalue)
-            if isinstance(newClosedValue, int):
-                pyautogui.scroll(newClosedValue)
-            else:
-                if closedCheck == 0:
-                    closedCheck += 1
-                    enable_keybind(newClosedValue)
-                print('Closed hand detected')
-                print(newClosedValue)
-        else:
-            closedCheck = 0
+                if is_peace_sign(hand_landmarks):
+                    newPeaceValue = strip_input(peacevalue)
+                    if isinstance(newPeaceValue, int):
+                        pyautogui.scroll(newPeaceValue)
+                    elif peaceCheck == 0:
+                        peaceCheck += 1
+                        enable_keybind(newPeaceValue)
+                        print("Peace sign detected:", newPeaceValue)
+                    cv2.putText(image, "Peace sign", (50, 50),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+                else:
+                    peaceCheck = 0
 
-        if is_pinch(hand_landmarks):
-            cv2.putText(image, "Pinch sign", (50, 50),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newPinchValue = strip_input(pinch1value)
-            if isinstance(newPinchValue, int):
-                pyautogui.scroll(newPinchValue)
-            else:
-                if pinch1Check == 0:
-                    pinch1Check += 1
-                    enable_keybind(newPinchValue)
-                print('Pinch1 hand detected')
-                print(newPinchValue)
-        else:
-            pinch1Check = 0
+                if is_pointer(hand_landmarks):
+                    newPointerValue = strip_input(pointervalue)
+                    if isinstance(newPointerValue, int):
+                        pyautogui.scroll(newPointerValue)
+                    elif pointerCheck == 0:
+                        pointerCheck += 1
+                        enable_keybind(newPointerValue)
+                        print("Pointer sign detected:", newPointerValue)
+                    cv2.putText(image, "Pointer sign", (50, 100),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+                else:
+                    pointerCheck = 0
 
+                if is_closed(hand_landmarks):
+                    newClosedValue = strip_input(closedvalue)
+                    if isinstance(newClosedValue, int):
+                        pyautogui.scroll(newClosedValue)
+                    elif closedCheck == 0:
+                        closedCheck += 1
+                        enable_keybind(newClosedValue)
+                        print("Closed hand detected:", newClosedValue)
+                    cv2.putText(image, "Closed hand", (50, 150),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+                else:
+                    closedCheck = 0
 
-        if is_pinch_2(hand_landmarks):
-            cv2.putText(image, "Pinch sign 2", (50, 50),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newPinchValue = strip_input(pinch2value)
-            if isinstance(newPinchValue, int):
-                pyautogui.scroll(newPinchValue)
-            else:
-                if pinch2Check == 0:
-                    pinch2Check += 1
-                    enable_keybind(newPinchValue)
-                print('Pinch2 hand detected')
-                print(newPinchValue)
-        else:
-            pinch2Check = 0
+                if is_pinch(hand_landmarks):
+                    newPinchValue = strip_input(pinch1value)
+                    if isinstance(newPinchValue, int):
+                        pyautogui.scroll(newPinchValue)
+                    elif pinch1Check == 0:
+                        pinch1Check += 1
+                        enable_keybind(newPinchValue)
+                        print("Pinch1 detected:", newPinchValue)
+                    cv2.putText(image, "Pinch 1", (50, 200),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+                else:
+                    pinch1Check = 0
 
-        if is_rocker(hand_landmarks):
-            cv2.putText(image, "rocker", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-            newrockerValue = strip_input(rockervalue)
-            if isinstance(newrockerValue, int):
-                pyautogui.scroll(newrockerValue)
-            else:
-                if rockerCheck == 0:
-                    rockerCheck += 1
-                    enable_keybind(newrockerValue)
-        else:
-            rockerCheck = 0
-        # checking for hand movements
-        #for id, lm in enumerate(hand_landmarks.landmark):
-        #    x = int(lm.x * frame.shape[1])
-        #    y = int(lm.y * frame.shape[0])
-        #    print(f"Landmark {id}: {lm}")
+                if is_pinch_2(hand_landmarks):
+                    newPinchValue = strip_input(pinch2value)
+                    if isinstance(newPinchValue, int):
+                        pyautogui.scroll(newPinchValue)
+                    elif pinch2Check == 0:
+                        pinch2Check += 1
+                        enable_keybind(newPinchValue)
+                        print("Pinch2 detected:", newPinchValue)
+                    cv2.putText(image, "Pinch 2", (50, 250),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+                else:
+                    pinch2Check = 0
 
+                if is_rocker(hand_landmarks):
+                    newrockerValue = strip_input(rockervalue)
+                    if isinstance(newrockerValue, int):
+                        pyautogui.scroll(newrockerValue)
+                    elif rockerCheck == 0:
+                        rockerCheck += 1
+                        enable_keybind(newrockerValue)
+                        print("Rocker detected:", newrockerValue)
+                    cv2.putText(image, "Rocker", (50, 300),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+                else:
+                    rockerCheck = 0
 
-    cv2.imshow("Handtracking", image)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+            ret, buffer = cv2.imencode('.jpg', image)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+    cam.release()
 
 
 
-
-
-cam.release()
 cv2.destroyAllWindows()
 
 #routes
@@ -302,6 +295,14 @@ cv2.destroyAllWindows()
 def save(binds):
     with open(SAVE_FILE,'w') as f:
         json.dump(binds,f)
+        keybinds['closedOff'] = binds.get('closedOff', closedvalue)
+        keybinds['pointer'] = binds.get('pointer', pointervalue)
+        keybinds['peace'] = binds.get('peace', peacevalue)
+        keybinds['pinch1'] = binds.get('pinch1', pinch1value)
+        keybinds['pinch2'] = binds.get('pinch2', pinch2value)
+        keybinds['rocker'] = binds.get('rocker', rockervalue)
+        print(keybinds)
+        print(binds)
 
 
 def load():
@@ -314,6 +315,7 @@ def load():
             keybinds['pinch1'] = data.get('pinch1', pinch1value)
             keybinds['pinch2'] = data.get('pinch2', pinch2value)
             keybinds['rocker'] = data.get('rocker', rockervalue)
+            print(keybinds)
 
 app = Flask(__name__)
 
@@ -327,6 +329,9 @@ def load_route():
         data = json.load(f)
         print("loading", data)
         return data['finalKeybinds']
+@app.route('/video_feed')
+def video_feed():
+    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/api/buttonclick',methods=['POST'])
 def button_click():

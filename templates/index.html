@@ -7,6 +7,7 @@
     <link rel = 'stylesheet' href = "../static/style.css">
 </head>
 <body>
+
 <div class ="binds">
 <h1>Key Binds</h1>
 <hr>
@@ -47,13 +48,15 @@
 <img src = '../static/handgraphics/rocker.png' style = "width:100px; margin-left:50px;">
     </div>
     <hr>
-
-
-</div>
-
-<hr>
 <h1 id = "response"></h1>
 <button id = "allchanges" onclick = "sendData()" >Submit All Changes</button>
+
+</div>
+<div class = "video">
+     <img src="/video_feed" width="640" height="480">
+</div>
+<hr>
+
 
 </div>
 <script>
@@ -94,6 +97,7 @@ function sendData() {
     })
     .catch(err => console.error("Error calling API:", err));
 }
+
 </script>
 
 </body>
