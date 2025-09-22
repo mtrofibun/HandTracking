@@ -7,17 +7,18 @@ SAVE_FILE = 'saved_data.json'
 
 #https://github.com/r0x0r/pywebview/blob/master/examples/localhost_ssl.py
 
-# TO:DO switch assignment to the json
+# fix pinch1 and pinch2 not loading correctly for odd reason
 # need undo and redo gesture
 # add hide camera button
-closedvalue = 'ctrl z'
-pointervalue = 'b'
-peacevalue = 'e'
-pinch1value = 'scroll in'
-pinch2value = 'scroll out'
-rockervalue = 'i'
+with open(SAVE_FILE) as l:
+    file = json.load(l)
+    closedvalue = file["finalKeybinds"]["closedOff"]
+    pointervalue = file["finalKeybinds"]["pointer"]
+    peacevalue = file["finalKeybinds"]["peace"]
+    pinch1value = file["finalKeybinds"]["pinch1"]
+    pinch2value = file["finalKeybinds"]["pinch2"]
+    rockervalue = file["finalKeybinds"]["rocker"]
 
-valuearray = [closedvalue,pointervalue,peacevalue,pinch1value,pinch2value]
 
 keybinds = { 'closedOff' : closedvalue,
             'pointer' : pointervalue,
@@ -26,6 +27,9 @@ keybinds = { 'closedOff' : closedvalue,
              'pinch2' : pinch2value,
              'rocker' : rockervalue
             }
+print(keybinds)
+
+
 # camera 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -199,81 +203,75 @@ def gen_frames():
                 mp_drawing.draw_landmarks(
                     image, hand_landmarks, mp_hands.HAND_CONNECTIONS
                 )
-
                 if is_peace_sign(hand_landmarks):
-                    newPeaceValue = strip_input(peacevalue)
+                    newPeaceValue = strip_input(keybinds['peace'])
                     if isinstance(newPeaceValue, int):
                         pyautogui.scroll(newPeaceValue)
                     elif peaceCheck == 0:
                         peaceCheck += 1
                         enable_keybind(newPeaceValue)
-                        print("Peace sign detected:", newPeaceValue)
-                    cv2.putText(image, "Peace sign", (50, 50),
+                    cv2.putText(image, f"Peace sign : {keybinds['peace']}", (50, 50),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 else:
                     peaceCheck = 0
 
                 if is_pointer(hand_landmarks):
-                    newPointerValue = strip_input(pointervalue)
+                    newPointerValue = strip_input(keybinds['pointer'])
                     if isinstance(newPointerValue, int):
                         pyautogui.scroll(newPointerValue)
                     elif pointerCheck == 0:
                         pointerCheck += 1
                         enable_keybind(newPointerValue)
-                        print("Pointer sign detected:", newPointerValue)
-                    cv2.putText(image, "Pointer sign", (50, 100),
+                    print("Pointer sign detected:", newPointerValue)
+                    cv2.putText(image, f"Pointer sign : {keybinds['pointer']}", (50, 100),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 else:
                     pointerCheck = 0
 
                 if is_closed(hand_landmarks):
-                    newClosedValue = strip_input(closedvalue)
+                    newClosedValue = strip_input(keybinds['closedOff'])
                     if isinstance(newClosedValue, int):
                         pyautogui.scroll(newClosedValue)
                     elif closedCheck == 0:
                         closedCheck += 1
                         enable_keybind(newClosedValue)
-                        print("Closed hand detected:", newClosedValue)
-                    cv2.putText(image, "Closed hand", (50, 150),
+                    cv2.putText(image, f"Closed hand : {keybinds['closedOff']}", (50, 150),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 else:
                     closedCheck = 0
 
                 if is_pinch(hand_landmarks):
-                    newPinchValue = strip_input(pinch1value)
+                    newPinchValue = strip_input(keybinds['pinch1'])
                     if isinstance(newPinchValue, int):
                         pyautogui.scroll(newPinchValue)
                     elif pinch1Check == 0:
                         pinch1Check += 1
                         enable_keybind(newPinchValue)
-                        print("Pinch1 detected:", newPinchValue)
-                    cv2.putText(image, "Pinch 1", (50, 200),
+                    cv2.putText(image, f"Pinch 1 : {keybinds['pinch1']}", (50, 200),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 else:
                     pinch1Check = 0
 
                 if is_pinch_2(hand_landmarks):
-                    newPinchValue = strip_input(pinch2value)
+                    newPinchValue = strip_input(keybinds['pinch2'])
                     if isinstance(newPinchValue, int):
                         pyautogui.scroll(newPinchValue)
                     elif pinch2Check == 0:
                         pinch2Check += 1
                         enable_keybind(newPinchValue)
-                        print("Pinch2 detected:", newPinchValue)
-                    cv2.putText(image, "Pinch 2", (50, 250),
+                    cv2.putText(image, f"Pinch 2 : {keybinds['pinch2']}", (50, 250),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 else:
                     pinch2Check = 0
 
                 if is_rocker(hand_landmarks):
-                    newrockerValue = strip_input(rockervalue)
+                    newrockerValue = strip_input(keybinds['rocker'])
                     if isinstance(newrockerValue, int):
                         pyautogui.scroll(newrockerValue)
                     elif rockerCheck == 0:
                         rockerCheck += 1
                         enable_keybind(newrockerValue)
-                        print("Rocker detected:", newrockerValue)
-                    cv2.putText(image, "Rocker", (50, 300),
+                    cv2.putText(image, f"Rocker : {keybinds['rocker']}", (50, 300),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 else:
                     rockerCheck = 0
@@ -295,27 +293,26 @@ cv2.destroyAllWindows()
 def save(binds):
     with open(SAVE_FILE,'w') as f:
         json.dump(binds,f)
-        keybinds['closedOff'] = binds.get('closedOff', closedvalue)
-        keybinds['pointer'] = binds.get('pointer', pointervalue)
-        keybinds['peace'] = binds.get('peace', peacevalue)
-        keybinds['pinch1'] = binds.get('pinch1', pinch1value)
-        keybinds['pinch2'] = binds.get('pinch2', pinch2value)
-        keybinds['rocker'] = binds.get('rocker', rockervalue)
-        print(keybinds)
-        print(binds)
-
+        keybinds['closedOff'] = binds["finalKeybinds"]["closedOff"]
+        keybinds['pointer'] = binds["finalKeybinds"]["pointer"]
+        keybinds['peace'] = binds["finalKeybinds"]["peace"]
+        keybinds['pinch1'] = binds["finalKeybinds"]["pinch1"]
+        keybinds['pinch2'] = binds["finalKeybinds"]["pinch2"]
+        keybinds['rocker'] = binds["finalKeybinds"]["rocker"]
+        print("saved", binds)
+        print("saved", keybinds)
 
 def load():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE) as f:
             data = json.load(f)
-            keybinds['closedOff'] = data.get('closedOff', closedvalue)
-            keybinds['pointer'] = data.get('pointer', pointervalue)
-            keybinds['peace'] = data.get('peace', peacevalue)
-            keybinds['pinch1'] = data.get('pinch1', pinch1value)
-            keybinds['pinch2'] = data.get('pinch2', pinch2value)
-            keybinds['rocker'] = data.get('rocker', rockervalue)
-            print(keybinds)
+            keybinds['closedOff'] = data["finalKeybinds"]["closedOff"]
+            keybinds['pointer'] = data["finalKeybinds"]["pointer"]
+            keybinds['peace'] = data["finalKeybinds"]["peace"]
+            keybinds['pinch1'] = data["finalKeybinds"]["pinch1"]
+            keybinds['pinch2']  = data["finalKeybinds"]["pinch2"]
+            keybinds['rocker'] = data["finalKeybinds"]["rocker"]
+            print("load", keybinds)
 
 app = Flask(__name__)
 
@@ -341,6 +338,11 @@ def button_click():
     message = "Changes are saved"
     print('Changes have been saved')
     return jsonify({"message": message})
+
+@app.route('/webcam')
+def webcam():
+    pass
+
 
 def start_flask():
     app.run(host="127.0.0.1", port=5000)

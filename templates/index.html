@@ -7,44 +7,45 @@
     <link rel = 'stylesheet' href = "../static/style.css">
 </head>
 <body>
+<div class= "container">
 
 <div class ="binds">
 <h1>Key Binds</h1>
 <hr>
 
 <div class = "box">
-<label id = "closed" for = "closed">Closed Hand : </label>
-<input type = "text" placeholder = "Zoom in" id = "closedInput" for = "closed">
+<label class = "color" id = "closed" for = "closedInput">Closed Hand : </label>
+<input type = "text"  id = "closedInput">
 <img src = '../static/handgraphics/closed.jpg' style = "width:90px; margin-left:50px;">
 </div>
     <hr>
     <div class = "box">
-<label id = "pointer">Pointer finger : </label>
-<input type = "text" placeholder = "b" id = "pointerInput">
+<label class = "color" id = "pointer" for = "pointerInput">Pointer finger : </label>
+<input type = "text"  id = "pointerInput">
 <img src = '../static/handgraphics/pointer.png' style = "width:100px; margin-left:50px;">
     </div>
     <hr>
 <div class = "box">
-<label id = "peace">Peace Sign : </label>
-<input type = "text" placeholder = "e" id = "peaceInput">
+<label class = "color" id = "peace" for = "peaceInput">Peace Sign : </label>
+<input type = "text"  id = "peaceInput">
 <img src = '../static/handgraphics/peace.png' style = "width:100px; margin-left:50px;">
     </div>
     <hr>
     <div class = "box">
-<label id = "pinch1">Pinch In : </label>
-<input type = "text" placeholder = "e" id = "pinch1Input">
+<label class = "color" id = "pinch1" for = "pinch1Input">Pinch In : </label>
+<input type = "text" id = "pinch1Input">
 <img src = '../static/handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
     </div>
     <hr>
        <div class = "box">
-<label id = "pinch2">Pinch Out : </label>
-<input type = "text" placeholder = "e" id = "pinch2Input">
+<label id = "pinch2" for = "pinch2Input">Pinch Out : </label>
+<input type = "text"  id = "pinch2Input">
 <img src = '../static/handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
     </div>
     <hr>
     <div class = "box">
-<label id = "rocker">Rocker Sign : </label>
-<input type = "text" placeholder = "e" id = "rockerInput">
+<label class = "color" id = "rocker" for = "rockerInput">Rocker Sign : </label>
+<input type = "text"  id = "rockerInput">
 <img src = '../static/handgraphics/rocker.png' style = "width:100px; margin-left:50px;">
     </div>
     <hr>
@@ -52,13 +53,20 @@
 <button id = "allchanges" onclick = "sendData()" >Submit All Changes</button>
 
 </div>
-<div class = "video">
-     <img src="/video_feed" width="640" height="480">
+    <div class = "video">
+        <h1>Web Cam</h1>
+        <div>
+        <label for = "toggle-webcam">Toggle Webcam</label>
+        <input type="checkbox" name="optionName" id = "toggle-webcam" value="optionValue">
+            </div>
+     <img src="/video_feed" >
 </div>
+
+    </div>
+
 <hr>
 
-
-</div>
+</body>
 <script>
 window.onload = () => {
     fetch(`/api/load`)
