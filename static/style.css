@@ -1,19 +1,25 @@
 body{
-    width:100%;
 
-     font-family: Arial, sans-serif;
+    background-color:white;
+    font-family: Arial, sans-serif;
     text-align:center ;
     align-items: center;
+
 }
 .container{
+
     width:100%;
     display:flex;
+     text-align:center ;
+    align-items: center;
+
 }
 .box{
-    border: 1px solid black;
-    border-radius : 10px;
+    color:white;
+    box-shadow:1px 1px 8px rgb(0,0,0,0.2);
+    border-radius : 8px;
     padding:10px;
-    width:200px;
+
     margin:10px;
     color: black;
     justify-content: center;
@@ -21,12 +27,18 @@ body{
 
 }
 .video{
-margin-left:30px;
-justify-content: center;
+    margin-left:40px;
+    justify-content: center;
     align-items: center;
-display:flex-inline;
+    box-shadow:1px 1px 8px rgb(0,0,0,0.2);
+    border-radius : 8px;
+    display:flex-inline;
+
 }
-.color:[hover]{
+
+#webcam{
+border : solid black 1px;}
+.color:hover{
     color:blue;
 }
 
@@ -37,19 +49,23 @@ input{
 
 .binds{
     display:flex-inline;
+    width:50%;
+    box-shadow:1px 1px 8px rgb(0,0,0,0.2);
+    border-radius : 8px;
 }
 
 button{
-    
+    border-radius:3px;
     border: 2px solid #1c6625;
   background-color: white;
   color: #1c6625;
   padding: 14px 28px;
   font-size: 16px;
-  cursor: pointer;
+
 }
 
 button:hover{
     color:white;
+    cursor: pointer;
     background-color: #1c6625;
 }

@@ -11,73 +11,89 @@
 
 <div class ="binds">
 <h1>Key Binds</h1>
-<hr>
+
 
 <div class = "box">
 <label class = "color" id = "closed" for = "closedInput">Closed Hand : </label>
 <input type = "text"  id = "closedInput">
 <img src = '../static/handgraphics/closed.jpg' style = "width:90px; margin-left:50px;">
 </div>
-    <hr>
     <div class = "box">
 <label class = "color" id = "pointer" for = "pointerInput">Pointer finger : </label>
 <input type = "text"  id = "pointerInput">
 <img src = '../static/handgraphics/pointer.png' style = "width:100px; margin-left:50px;">
     </div>
-    <hr>
 <div class = "box">
 <label class = "color" id = "peace" for = "peaceInput">Peace Sign : </label>
 <input type = "text"  id = "peaceInput">
 <img src = '../static/handgraphics/peace.png' style = "width:100px; margin-left:50px;">
     </div>
-    <hr>
     <div class = "box">
 <label class = "color" id = "pinch1" for = "pinch1Input">Pinch In : </label>
 <input type = "text" id = "pinch1Input">
 <img src = '../static/handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
     </div>
-    <hr>
        <div class = "box">
 <label id = "pinch2" for = "pinch2Input">Pinch Out : </label>
 <input type = "text"  id = "pinch2Input">
 <img src = '../static/handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
     </div>
-    <hr>
     <div class = "box">
 <label class = "color" id = "rocker" for = "rockerInput">Rocker Sign : </label>
 <input type = "text"  id = "rockerInput">
 <img src = '../static/handgraphics/rocker.png' style = "width:100px; margin-left:50px;">
     </div>
-    <hr>
+    <div class = "box">
+<label class = "color" id = "pinky" for = "rockerInput">Pinky : </label>
+<input type = "text"  id = "pinkyInput">
+<img src = '../static/handgraphics/pinky.png' style = "width:100px; margin-left:50px;">
+    </div>
+
 <h1 id = "response"></h1>
 <button id = "allchanges" onclick = "sendData()" >Submit All Changes</button>
-
 </div>
+
     <div class = "video">
-        <h1>Web Cam</h1>
+        <h1>Camera</h1>
         <div>
-        <label for = "toggle-webcam">Toggle Webcam</label>
+        <label for = "toggle-webcam">Toggle Camera</label>
         <input type="checkbox" name="optionName" id = "toggle-webcam" value="optionValue">
             </div>
-     <img src="/video_feed" >
+     <img src="/video_feed" id = "webcam">
 </div>
 
     </div>
 
-<hr>
 
 </body>
 <script>
+
+document.addEventListener("DOMContentLoaded", (event) => {
+  console.log("DOM fully loaded and parsed");
+    webcam_off = document.getElementById('webcam');
+    document.addEventListener("click", ()=>{
+    var isClicked = false;
+    if(isClicked == false){
+       isClicked = true;
+    }
+    else{
+       isClicked = false;
+    }
+
+    });
+    });
 window.onload = () => {
+
     fetch(`/api/load`)
     .then(res => res.json())
     .then(data => {
         document.getElementById('closedInput').value = data.closedOff;
         document.getElementById('pointerInput').value = data.pointer;
         document.getElementById('peaceInput').value = data.peace;
-        document.getElementById('pinch1Input').value = data.pinch1value;
-        document.getElementById('pinch2Input').value = data.pinch2value;
+        document.getElementById('pinch1Input').value = data.pinch1;
+        document.getElementById('pinch2Input').value = data.pinch2;
         document.getElementById('rockerInput').value = data.rocker;
+        document.getElementById('pinkyInput').value = data.pinky;
     })
     .catch(err => console.error("Error loading data:", err));
 };
@@ -89,7 +105,8 @@ function sendData() {
         peace: document.getElementById('peaceInput').value,
         pinch1: document.getElementById('pinch1Input').value,
         pinch2: document.getElementById('pinch2Input').value,
-        rocker: document.getElementById('rockerInput').value
+        rocker: document.getElementById('rockerInput').value,
+        pinky: document.getElementById('pinkyInput').value
     };
 
     console.log("Sending finalKeybinds:", finalKeybinds);
@@ -105,7 +122,7 @@ function sendData() {
     })
     .catch(err => console.error("Error calling API:", err));
 }
-
+c
 </script>
 
 </body>

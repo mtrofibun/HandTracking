@@ -5,11 +5,13 @@ import mediapipe as mp
 from pyparsing import results
 SAVE_FILE = 'saved_data.json'
 
-#https://github.com/r0x0r/pywebview/blob/master/examples/localhost_ssl.py
-
-# fix pinch1 and pinch2 not loading correctly for odd reason
 # need undo and redo gesture
 # add hide camera button
+# can do pinky, maybe thumbs up by making thumb index of y greater than all the indexs
+#
+
+global webcam_off
+
 with open(SAVE_FILE) as l:
     file = json.load(l)
     closedvalue = file["finalKeybinds"]["closedOff"]
@@ -18,6 +20,7 @@ with open(SAVE_FILE) as l:
     pinch1value = file["finalKeybinds"]["pinch1"]
     pinch2value = file["finalKeybinds"]["pinch2"]
     rockervalue = file["finalKeybinds"]["rocker"]
+    pinkyvalue = file["finalKeybinds"]['pinky']
 
 
 keybinds = { 'closedOff' : closedvalue,
@@ -25,12 +28,14 @@ keybinds = { 'closedOff' : closedvalue,
             'peace' : peacevalue,
              'pinch1' : pinch1value,
              'pinch2' : pinch2value,
-             'rocker' : rockervalue
+             'rocker' : rockervalue,
+             'pinky' : pinkyvalue,
             }
 print(keybinds)
 
+webcam_off =  False
 
-# camera 
+# camera
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -156,7 +161,7 @@ def is_pinch_2(hand_landmarks):
     pointer_up = landmarks[FINGERS1[3]].y < landmarks[FINGERS2[3]].y
 
     distance = track_distance(pointer_tip, thumb_tip)
-    if 0.08 < distance < 0.15 and middle_down and ring_down and pinky_down and pointer_up:
+    if 0.07 < distance < 0.13 and middle_down and ring_down and pinky_down and pointer_up:
         return True
     return False
 
@@ -164,20 +169,34 @@ def is_rocker(hand_landmarks):
     landmarks = hand_landmarks.landmark
 
     FINGER_TIPS = [8,12,16,20]
-    FINGER_PIPS = [5,9,13,17]
+    FINGER_PIPS = [5,9,13,19]
 
     index_up = landmarks[FINGER_TIPS[0]].y < landmarks[FINGER_PIPS[0]].y
-    middle_up = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
-    pointer_up = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
-    pinky_down = landmarks[FINGER_TIPS[3]].y < landmarks[FINGER_PIPS[3]].y
-    if index_up and middle_up and pointer_up and pinky_down:
+    middle_down = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
+    pointer_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
+    pinky_up = landmarks[FINGER_TIPS[3]].y < landmarks[FINGER_PIPS[3]].y
+    if index_up and middle_down and pointer_down and pinky_up:
         return True
     return False
 
-peaceCheck,pointerCheck,closedCheck,pinch1Check,pinch2Check,rockerCheck = 0,0,0,0,0,0
+def is_pinky(hand_landmarks):
+    landmarks = hand_landmarks.landmark
+
+    FINGER_TIPS = [8,12,16,20]
+    FINGER_PIPS = [5,9,13,19]
+
+    index_down = landmarks[FINGER_TIPS[0]].y > landmarks[FINGER_PIPS[0]].y
+    middle_down = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
+    pointer_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
+    pinky_up = landmarks[FINGER_TIPS[3]].y < landmarks[FINGER_PIPS[3]].y
+    if index_down and middle_down and pointer_down and pinky_up:
+        return True
+    return False
+
+peaceCheck,pointerCheck,closedCheck,pinch1Check,pinch2Check,rockerCheck,pinkyCheck = 0,0,0,0,0,0,0
 
 def gen_frames():
-    global peaceCheck, pointerCheck, closedCheck, pinch1Check, pinch2Check, rockerCheck
+    global peaceCheck, pointerCheck, closedCheck, pinch1Check, pinch2Check, rockerCheck, pinkyCheck
 
     cam = cv2.VideoCapture(0)
 
@@ -276,10 +295,23 @@ def gen_frames():
                 else:
                     rockerCheck = 0
 
-            ret, buffer = cv2.imencode('.jpg', image)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                if is_pinky(hand_landmarks):
+                    newPinkyValue = strip_input(keybinds['pinky'])
+                    if isinstance(newPinkyValue,int):
+                        pyautogui.scroll(newPinkyValue)
+                    elif pinkyCheck == 0:
+                        pinkyCheck += 1
+                        enable_keybind(newPinkyValue)
+                    cv2.putText(image, f"Pinky : {keybinds['pinky']}", (50, 300),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+                else:
+                    pinkyCheck = 0
+
+            if not webcam_off:
+                ret, buffer = cv2.imencode('.jpg', image)
+                frame = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
     cam.release()
 
@@ -299,6 +331,7 @@ def save(binds):
         keybinds['pinch1'] = binds["finalKeybinds"]["pinch1"]
         keybinds['pinch2'] = binds["finalKeybinds"]["pinch2"]
         keybinds['rocker'] = binds["finalKeybinds"]["rocker"]
+        keybinds['pinky'] = binds["finalKeybinds"]["pinky"]
         print("saved", binds)
         print("saved", keybinds)
 
@@ -312,6 +345,7 @@ def load():
             keybinds['pinch1'] = data["finalKeybinds"]["pinch1"]
             keybinds['pinch2']  = data["finalKeybinds"]["pinch2"]
             keybinds['rocker'] = data["finalKeybinds"]["rocker"]
+            keybinds['pinky'] = data["finalKeybinds"]["pinky"]
             print("load", keybinds)
 
 app = Flask(__name__)
@@ -340,8 +374,8 @@ def button_click():
     return jsonify({"message": message})
 
 @app.route('/webcam')
-def webcam():
-    pass
+def webcam(response):
+    webcam_off = response
 
 
 def start_flask():
