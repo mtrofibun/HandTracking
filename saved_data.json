@@ -1,1 +1,44 @@
-{"finalKeybinds": {"closedOff": "b", "pointer": "ctrl z", "peace": "ctrl x", "pinch1": "scroll in", "pinch2": "scroll out", "rocker": "i", "pinky": "e"}}
+{
+  "finalKeybinds": {
+    "closedOff": {
+      "value": "b",
+      "repeat": false,
+      "scroll": 0
+    },
+    "pointer": {
+      "value": "w",
+      "repeat": false,
+      "scroll": 0
+    },
+    "peace": {
+      "value": "s",
+      "repeat": false,
+      "scroll": 0
+    },
+    "pinch1": {
+      "value": "scroll in",
+      "repeat": false,
+      "scroll": 150
+    },
+    "pinch2": {
+      "value": "scroll out",
+      "repeat": false,
+      "scroll": -150
+    },
+    "rocker": {
+      "value": "n",
+      "repeat": false,
+      "scroll": 0
+    },
+    "call": {
+      "value": "e",
+      "repeat": false,
+      "scroll": 0
+    },
+    "thumbsup": {
+      "value": "e",
+      "repeat": false,
+      "scroll": 0
+    }
+  }
+}

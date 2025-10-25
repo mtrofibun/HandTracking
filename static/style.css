@@ -8,10 +8,8 @@ body{
 }
 .container{
 
-    width:100%;
+    max-width:100%;
     display:flex;
-     text-align:center ;
-    align-items: center;
 
 }
 .box{
@@ -19,11 +17,12 @@ body{
     box-shadow:1px 1px 8px rgb(0,0,0,0.2);
     border-radius : 8px;
     padding:10px;
-
     margin:10px;
     color: black;
-    justify-content: center;
-    align-items: center;
+    display: flex;
+  justify-content: center;
+  align-items: center;
+
 
 }
 .video{
@@ -32,10 +31,14 @@ body{
     align-items: center;
     box-shadow:1px 1px 8px rgb(0,0,0,0.2);
     border-radius : 8px;
-    display:flex-inline;
+
 
 }
-
+.hand-input{
+ justify-content: right;
+    align-items: right;
+max-width:150px;
+}
 #webcam{
 border : solid black 1px;}
 .color:hover{
@@ -45,12 +48,14 @@ border : solid black 1px;}
 input{
     width:100px;
     margin-left: 10px;
+    margin:10px;
 }
+
 
 .binds{
     display:flex-inline;
     width:50%;
-    box-shadow:1px 1px 8px rgb(0,0,0,0.2);
+    border : solid #D3D3D3 1.9px;
     border-radius : 8px;
 }
 

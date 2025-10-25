@@ -14,8 +14,18 @@
 
 
 <div class = "box">
+    <div class = "hand-input">
+        <hr>
 <label class = "color" id = "closed" for = "closedInput">Closed Hand : </label>
 <input type = "text"  id = "closedInput">
+        <hr>
+    <label for = "closed-repeat">Repeat</label>
+    <input id = "closed-repeat" type = "checkbox">
+        <hr>
+    <label for = "closed-scroll">Scrolling Value</label>
+    <input id ="closed-scroll" type = "text">
+        <hr>
+    </div>
 <img src = '../static/handgraphics/closed.jpg' style = "width:90px; margin-left:50px;">
 </div>
     <div class = "box">
@@ -44,9 +54,14 @@
 <img src = '../static/handgraphics/rocker.png' style = "width:100px; margin-left:50px;">
     </div>
     <div class = "box">
-<label class = "color" id = "pinky" for = "rockerInput">Pinky : </label>
-<input type = "text"  id = "pinkyInput">
-<img src = '../static/handgraphics/pinky.png' style = "width:100px; margin-left:50px;">
+<label class = "color" id = "call" for = "callInput">Calling Sign : </label>
+<input type = "text"  id = "callInput">
+<img src = '../static/handgraphics/call.png' style = "width:100px; margin-left:50px;">
+    </div>
+        <div class = "box">
+<label class = "color" id = "thumbs" for = "thumbsInput">Thumbs Up : </label>
+<input type = "text"  id = "thumbsInput">
+<img src = '../static/handgraphics/thumbs.png' style = "width:100px; margin-left:50px;">
     </div>
 
 <h1 id = "response"></h1>
@@ -65,64 +80,114 @@
     </div>
 
 
-</body>
+
 <script>
+let isClicked = false;
 
-document.addEventListener("DOMContentLoaded", (event) => {
-  console.log("DOM fully loaded and parsed");
-    webcam_off = document.getElementById('webcam');
-    document.addEventListener("click", ()=>{
-    var isClicked = false;
-    if(isClicked == false){
-       isClicked = true;
+document.addEventListener("DOMContentLoaded", () => {
+  const webcam_off = document.getElementById('webcam');
+  const toggleButton = document.getElementById('toggle-webcam');
+
+  toggleButton.addEventListener("click", () => {
+    isClicked = !isClicked;
+
+    if (isClicked) {
+      webcam_off.style.display = "none";
+      fetch('/webcam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: 'True'
+      });
+    } else {
+      webcam_off.style.display = "block";
+      fetch('/webcam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: 'False'
+      });
     }
-    else{
-       isClicked = false;
-    }
+  });
 
-    });
-    });
-window.onload = () => {
-
-    fetch(`/api/load`)
-    .then(res => res.json())
+  // Load saved keybinds
+  fetch('/api/load')
+    .then(res => {
+      console.log("Response status:", res.status);
+      return res.json();
+    })
     .then(data => {
-        document.getElementById('closedInput').value = data.closedOff;
-        document.getElementById('pointerInput').value = data.pointer;
-        document.getElementById('peaceInput').value = data.peace;
-        document.getElementById('pinch1Input').value = data.pinch1;
-        document.getElementById('pinch2Input').value = data.pinch2;
-        document.getElementById('rockerInput').value = data.rocker;
-        document.getElementById('pinkyInput').value = data.pinky;
+      console.log("Loaded data:", data);
+      document.getElementById('closedInput').value = data.closedOff.value;
+      document.getElementById('pointerInput').value = data.pointer.value;
+      document.getElementById('peaceInput').value = data.peace.value;
+      document.getElementById('pinch1Input').value = data.pinch1.value;
+      document.getElementById('pinch2Input').value = data.pinch2.value;
+      document.getElementById('rockerInput').value = data.rocker.value;
+      document.getElementById('callInput').value = data.call.value;
+      document.getElementById('thumbsInput').value = data.thumbsup.value;
     })
     .catch(err => console.error("Error loading data:", err));
-};
+}); // ✅ closes DOMContentLoaded
 
 function sendData() {
-    const finalKeybinds = {
-        closedOff: document.getElementById('closedInput').value,
-        pointer: document.getElementById('pointerInput').value,
-        peace: document.getElementById('peaceInput').value,
-        pinch1: document.getElementById('pinch1Input').value,
-        pinch2: document.getElementById('pinch2Input').value,
-        rocker: document.getElementById('rockerInput').value,
-        pinky: document.getElementById('pinkyInput').value
-    };
+  const finalKeybinds = {
+    finalKeybinds: {
+      closedOff: {
+        value: document.getElementById('closedInput').value,
+        repeat: false,
+        scroll: 0
+      },
+      pointer: {
+        value: document.getElementById('pointerInput').value,
+        repeat: false,
+        scroll: 0
+      },
+      peace: {
+        value: document.getElementById('peaceInput').value,
+        repeat: false,
+        scroll: 0
+      },
+      pinch1: {
+        value: 'scroll in',
+        repeat: false,
+        scroll: 150
+      },
+      pinch2: {
+        value: 'scroll out',
+        repeat: false,
+        scroll: 150
+      },
+      rocker: {
+        value: document.getElementById('rockerInput').value,
+        repeat: false,
+        scroll: 0
+      },
+      call: {
+        value: document.getElementById('callInput').value,
+        repeat: false,
+        scroll: 0
+      },
+      thumbsup: {
+        value: document.getElementById('thumbsInput').value,
+        repeat: false,
+        scroll: 0
+      }
+    }
+  };
 
-    console.log("Sending finalKeybinds:", finalKeybinds);
+  console.log("Sending finalKeybinds:", finalKeybinds);
 
-    fetch('/api/buttonclick', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ finalKeybinds })
-    })
+  fetch('/api/buttonclick', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(finalKeybinds)
+  })
     .then(res => res.json())
     .then(data => {
-        document.getElementById('response').textContent = data.message;
+      document.getElementById('response').textContent = data.message;
     })
     .catch(err => console.error("Error calling API:", err));
 }
-c
+
 </script>
 
 </body>

@@ -1,44 +1,32 @@
-import webview
+import webview, joblib
 from flask import Flask, render_template, request, jsonify,Response
 import threading,os,json,cv2,pyautogui, math
 import mediapipe as mp
+import numpy as np
 from pyparsing import results
 SAVE_FILE = 'saved_data.json'
 
 # need undo and redo gesture
 # add hide camera button
 # can do pinky, maybe thumbs up by making thumb index of y greater than all the indexs
-#
+# reassign variables when saving not when active in the camera to reduce copies
 
-global webcam_off
+webcam_off = False
+
+
 
 with open(SAVE_FILE) as l:
     file = json.load(l)
-    closedvalue = file["finalKeybinds"]["closedOff"]
-    pointervalue = file["finalKeybinds"]["pointer"]
-    peacevalue = file["finalKeybinds"]["peace"]
-    pinch1value = file["finalKeybinds"]["pinch1"]
-    pinch2value = file["finalKeybinds"]["pinch2"]
-    rockervalue = file["finalKeybinds"]["rocker"]
-    pinkyvalue = file["finalKeybinds"]['pinky']
+    keybinds = file
 
 
-keybinds = { 'closedOff' : closedvalue,
-            'pointer' : pointervalue,
-            'peace' : peacevalue,
-             'pinch1' : pinch1value,
-             'pinch2' : pinch2value,
-             'rocker' : rockervalue,
-             'pinky' : pinkyvalue,
-            }
-print(keybinds)
-
-webcam_off =  False
 
 # camera
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
+
+model = joblib.load("gesture_model.pkl")
 
 hands = mp_hands.Hands(
     max_num_hands=1,
@@ -55,13 +43,16 @@ def strip_input(keybindValue):
     keybindValue = keybindValue.lower()
     if len(keybindValue) > 1:
         keybindValue = keybindValue.split(" ")
-        if keybindValue[0] == 'scroll':
-            if keybindValue[1] == 'out':
-                keybindValue = '100'
-            else:
-                keybindValue = '-100'
-            keybindValue = int(keybindValue)
     return keybindValue
+
+def normalize_landmarks(landmarks):
+    wrist = landmarks[0]
+    norm = []
+    for lm in landmarks:
+        norm.append([lm.x - wrist.x, lm.y - wrist.y, lm.z - wrist.z])
+    scale = ((landmarks[12].x - wrist.x)**2 + (landmarks[12].y - wrist.y)**2) ** 0.5
+    norm = [[x/scale,y/scale,x/scale] for x,y,z in norm]
+    return norm
 
 def enable_keybind(value):
         if isinstance(value, list):
@@ -69,58 +60,6 @@ def enable_keybind(value):
         else:
             pyautogui.press(value)
 
-def is_pointer(hand_landmarks):
-    landmarks = hand_landmarks.landmark
-
-    FINGER_TIPS = [8,12,16,20]
-    FINGER_PIPS = [5,9,13,17]
-
-    index_up = landmarks[FINGER_TIPS[0]].y < landmarks[FINGER_PIPS[0]].y
-    middle_down = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
-    ring_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
-    pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
-
-
-
-    distance = track_distance(landmarks[8], landmarks[4])
-
-
-    if index_up and middle_down and ring_down and pinky_down and distance > 0.15:
-        return True
-    return False
-
-
-def is_peace_sign(hand_landmarks):
-    landmarks = hand_landmarks.landmark
-
-    FINGER_TIPS = [8, 12, 16, 20,4]
-    FINGER_PIPS = [6, 10, 14, 18,12]
-
-    index_up = landmarks[FINGER_TIPS[0]].y < landmarks[FINGER_PIPS[0]].y
-    middle_up = landmarks[FINGER_TIPS[1]].y < landmarks[FINGER_PIPS[1]].y
-    ring_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
-    pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
-    crossed_thumb = landmarks[FINGER_TIPS[4]].y > landmarks[FINGER_PIPS[4]].y
-
-
-    if index_up and middle_up and ring_down and pinky_down:
-        return True
-    return False
-
-def is_closed(hand_landmarks):
-    landmarks = hand_landmarks.landmark
-
-    FINGER_TIPS = [8,12,16,20,8]
-    FINGER_PIPS = [5,9,13,17,4]
-
-    index_down = landmarks[FINGER_TIPS[0]].y > landmarks[FINGER_PIPS[0]].y
-    middle_down = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
-    ring_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
-    pinky_down = landmarks[FINGER_TIPS[3]].y > landmarks[FINGER_PIPS[3]].y
-
-    if index_down and middle_down and ring_down and pinky_down:
-        return True
-    return False
 
 def track_distance(p1,p2):
     distance = math.sqrt(
@@ -165,38 +104,11 @@ def is_pinch_2(hand_landmarks):
         return True
     return False
 
-def is_rocker(hand_landmarks):
-    landmarks = hand_landmarks.landmark
 
-    FINGER_TIPS = [8,12,16,20]
-    FINGER_PIPS = [5,9,13,19]
-
-    index_up = landmarks[FINGER_TIPS[0]].y < landmarks[FINGER_PIPS[0]].y
-    middle_down = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
-    pointer_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
-    pinky_up = landmarks[FINGER_TIPS[3]].y < landmarks[FINGER_PIPS[3]].y
-    if index_up and middle_down and pointer_down and pinky_up:
-        return True
-    return False
-
-def is_pinky(hand_landmarks):
-    landmarks = hand_landmarks.landmark
-
-    FINGER_TIPS = [8,12,16,20]
-    FINGER_PIPS = [5,9,13,19]
-
-    index_down = landmarks[FINGER_TIPS[0]].y > landmarks[FINGER_PIPS[0]].y
-    middle_down = landmarks[FINGER_TIPS[1]].y > landmarks[FINGER_PIPS[1]].y
-    pointer_down = landmarks[FINGER_TIPS[2]].y > landmarks[FINGER_PIPS[2]].y
-    pinky_up = landmarks[FINGER_TIPS[3]].y < landmarks[FINGER_PIPS[3]].y
-    if index_down and middle_down and pointer_down and pinky_up:
-        return True
-    return False
-
-peaceCheck,pointerCheck,closedCheck,pinch1Check,pinch2Check,rockerCheck,pinkyCheck = 0,0,0,0,0,0,0
+pinch1Check,pinch2Check = 0,0
 
 def gen_frames():
-    global peaceCheck, pointerCheck, closedCheck, pinch1Check, pinch2Check, rockerCheck, pinkyCheck
+    global pinch1Check, pinch2Check
 
     cam = cv2.VideoCapture(0)
 
@@ -222,95 +134,58 @@ def gen_frames():
                 mp_drawing.draw_landmarks(
                     image, hand_landmarks, mp_hands.HAND_CONNECTIONS
                 )
-                if is_peace_sign(hand_landmarks):
-                    newPeaceValue = strip_input(keybinds['peace'])
-                    if isinstance(newPeaceValue, int):
-                        pyautogui.scroll(newPeaceValue)
-                    elif peaceCheck == 0:
-                        peaceCheck += 1
-                        enable_keybind(newPeaceValue)
-                    cv2.putText(image, f"Peace sign : {keybinds['peace']}", (50, 50),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-                else:
-                    peaceCheck = 0
 
-                if is_pointer(hand_landmarks):
-                    newPointerValue = strip_input(keybinds['pointer'])
-                    if isinstance(newPointerValue, int):
-                        pyautogui.scroll(newPointerValue)
-                    elif pointerCheck == 0:
-                        pointerCheck += 1
-                        enable_keybind(newPointerValue)
-                    print("Pointer sign detected:", newPointerValue)
-                    cv2.putText(image, f"Pointer sign : {keybinds['pointer']}", (50, 100),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-                else:
-                    pointerCheck = 0
+                #output works we just need to make sure it doesn't overlap pinch1 + 2 + pinky??
 
-                if is_closed(hand_landmarks):
-                    newClosedValue = strip_input(keybinds['closedOff'])
-                    if isinstance(newClosedValue, int):
-                        pyautogui.scroll(newClosedValue)
-                    elif closedCheck == 0:
-                        closedCheck += 1
-                        enable_keybind(newClosedValue)
-                    cv2.putText(image, f"Closed hand : {keybinds['closedOff']}", (50, 150),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-                else:
-                    closedCheck = 0
+                if not is_pinch(hand_landmarks) and not is_pinch_2(hand_landmarks) and webcam_off is False:
+                    norm_landmarks = normalize_landmarks(hand_landmarks.landmark)
+                    row = [coord for lm in norm_landmarks for coord in lm]
+                    x = np.array(row).reshape(1, -1)
+                    output = model.predict(x)[0]
+                    # keybinds doesn't have scroll we can add that for it to be easier
+                    print(keybinds)
+                    if output != "open":
+
+                        if keybinds['finalKeybinds'][output]["scroll"] != 0:
+                            pyautogui.scroll(keybinds["finalKeybinds"][output]["scroll"])
+                        else:
+                            newValue = strip_input(keybinds["finalKeybinds"][output]["value"])
+                            enable_keybind(newValue)
+
+                        cv2.putText(image, f"{output} sign : {keybinds['finalKeybinds'][output]['value']}", (50, 50),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+
+
 
                 if is_pinch(hand_landmarks):
-                    newPinchValue = strip_input(keybinds['pinch1'])
-                    if isinstance(newPinchValue, int):
-                        pyautogui.scroll(newPinchValue)
-                    elif pinch1Check == 0:
+
+                    if keybinds["finalKeybinds"]['pinch1']['scroll'] != 0:
+                        pyautogui.scroll(keybinds["finalKeybinds"]['pinch1']['scroll'])
+                    else:
+                        newPinchValue = strip_input(keybinds["finalKeybinds"]['pinch1']['value'])
                         pinch1Check += 1
                         enable_keybind(newPinchValue)
-                    cv2.putText(image, f"Pinch 1 : {keybinds['pinch1']}", (50, 200),
+                    cv2.putText(image, f"Pinch 1 : {keybinds['finalKeybinds']['pinch1']['value']}", (50, 200),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 else:
                     pinch1Check = 0
 
                 if is_pinch_2(hand_landmarks):
-                    newPinchValue = strip_input(keybinds['pinch2'])
-                    if isinstance(newPinchValue, int):
-                        pyautogui.scroll(newPinchValue)
-                    elif pinch2Check == 0:
-                        pinch2Check += 1
+                    if keybinds['finalKeybinds']['pinch2']['scroll'] != 0:
+                        pyautogui.scroll(keybinds['finalKeybinds']['pinch2']['scroll'])
+                    else:
+                        newPinchValue = strip_input(keybinds['finalKeybinds']['pinch2']['value'])
+                        pinch1Check += 1
                         enable_keybind(newPinchValue)
-                    cv2.putText(image, f"Pinch 2 : {keybinds['pinch2']}", (50, 250),
+                    cv2.putText(image, f"Pinch 2 : {keybinds['finalKeybinds']['pinch2']['value']}", (50, 200),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 else:
                     pinch2Check = 0
 
-                if is_rocker(hand_landmarks):
-                    newrockerValue = strip_input(keybinds['rocker'])
-                    if isinstance(newrockerValue, int):
-                        pyautogui.scroll(newrockerValue)
-                    elif rockerCheck == 0:
-                        rockerCheck += 1
-                        enable_keybind(newrockerValue)
-                    cv2.putText(image, f"Rocker : {keybinds['rocker']}", (50, 300),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-                else:
-                    rockerCheck = 0
 
-                if is_pinky(hand_landmarks):
-                    newPinkyValue = strip_input(keybinds['pinky'])
-                    if isinstance(newPinkyValue,int):
-                        pyautogui.scroll(newPinkyValue)
-                    elif pinkyCheck == 0:
-                        pinkyCheck += 1
-                        enable_keybind(newPinkyValue)
-                    cv2.putText(image, f"Pinky : {keybinds['pinky']}", (50, 300),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-                else:
-                    pinkyCheck = 0
-
-            if not webcam_off:
-                ret, buffer = cv2.imencode('.jpg', image)
-                frame = buffer.tobytes()
-                yield (b'--frame\r\n'
+            ret, buffer = cv2.imencode('.jpg', image)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
     cam.release()
@@ -325,13 +200,9 @@ cv2.destroyAllWindows()
 def save(binds):
     with open(SAVE_FILE,'w') as f:
         json.dump(binds,f)
-        keybinds['closedOff'] = binds["finalKeybinds"]["closedOff"]
-        keybinds['pointer'] = binds["finalKeybinds"]["pointer"]
-        keybinds['peace'] = binds["finalKeybinds"]["peace"]
-        keybinds['pinch1'] = binds["finalKeybinds"]["pinch1"]
-        keybinds['pinch2'] = binds["finalKeybinds"]["pinch2"]
-        keybinds['rocker'] = binds["finalKeybinds"]["rocker"]
-        keybinds['pinky'] = binds["finalKeybinds"]["pinky"]
+        saved = json.loads(binds)
+        global keybinds
+        keybinds = saved
         print("saved", binds)
         print("saved", keybinds)
 
@@ -339,13 +210,14 @@ def load():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE) as f:
             data = json.load(f)
-            keybinds['closedOff'] = data["finalKeybinds"]["closedOff"]
-            keybinds['pointer'] = data["finalKeybinds"]["pointer"]
-            keybinds['peace'] = data["finalKeybinds"]["peace"]
-            keybinds['pinch1'] = data["finalKeybinds"]["pinch1"]
-            keybinds['pinch2']  = data["finalKeybinds"]["pinch2"]
-            keybinds['rocker'] = data["finalKeybinds"]["rocker"]
-            keybinds['pinky'] = data["finalKeybinds"]["pinky"]
+            keybinds['closedOff'] = data["finalKeybinds"]["closedOff"]["value"]
+            keybinds['pointer'] = data["finalKeybinds"]["pointer"]["value"]
+            keybinds['peace'] = data["finalKeybinds"]["peace"]["value"]
+            keybinds['pinch1'] = data["finalKeybinds"]["pinch1"]["value"]
+            keybinds['pinch2']  = data["finalKeybinds"]["pinch2"]["value"]
+            keybinds['rocker'] = data["finalKeybinds"]["rocker"]["value"]
+            keybinds['call'] = data["finalKeybinds"]["call"]["value"]
+            keybinds['thumbsup'] = data["finalKeybinds"]["thumbsup"]["value"]
             print("load", keybinds)
 
 app = Flask(__name__)
@@ -358,8 +230,9 @@ def home():
 def load_route():
     with open(SAVE_FILE,'r') as f:
         data = json.load(f)
-        print("loading", data)
-        return data['finalKeybinds']
+        print("load")
+        return jsonify(data["finalKeybinds"])
+
 @app.route('/video_feed')
 def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
@@ -375,6 +248,7 @@ def button_click():
 
 @app.route('/webcam')
 def webcam(response):
+    global webcam_off
     webcam_off = response
 
 
