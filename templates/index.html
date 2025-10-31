@@ -15,15 +15,16 @@
 
 <div class = "box">
     <div class = "hand-input">
-        <hr>
-<label class = "color" id = "closed" for = "closedInput">Closed Hand : </label>
+        <h2 style = "padding:10px;">Closed Hand</h2>
+
+<label class = "color" id = "closed" for = "closedInput">Value : </label>
 <input type = "text"  id = "closedInput">
-        <hr>
-    <label for = "closed-repeat">Repeat</label>
-    <input id = "closed-repeat" type = "checkbox">
-        <hr>
-    <label for = "closed-scroll">Scrolling Value</label>
-    <input id ="closed-scroll" type = "text">
+
+    <label for = "closedOff-repeat">Repeat</label>
+    <input id = "closedOff-repeat" type = "checkbox">
+
+    <label for = "closedOff-scroll">Scrolling Value</label>
+    <input id ="closedOff-scroll" type = "text">
         <hr>
     </div>
 <img src = '../static/handgraphics/closed.jpg' style = "width:90px; margin-left:50px;">
@@ -83,30 +84,33 @@
 
 <script>
 let isClicked = false;
-
+// to do :
+ try to fix toggle webcam,
+ find a easier way to find out if a box was checked then save it and try to get the saved data into the front end
+ fix front end css its lowkey ugly
+ if you want to add more simple gestures ig do that too??
+ //
 document.addEventListener("DOMContentLoaded", () => {
   const webcam_off = document.getElementById('webcam');
   const toggleButton = document.getElementById('toggle-webcam');
 
-  toggleButton.addEventListener("click", () => {
-    isClicked = !isClicked;
-
-    if (isClicked) {
-      webcam_off.style.display = "none";
-      fetch('/webcam', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: 'True'
-      });
-    } else {
-      webcam_off.style.display = "block";
-      fetch('/webcam', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: 'False'
-      });
-    }
-  });
+toggleButton.addEventListener('change', () => {
+  if (toggleButton.checked) {
+    webcam_off.style.display = "none";
+    fetch('/webcam', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: 'True'
+    });
+  } else {
+    webcam_off.style.display = "block";
+    fetch('/webcam', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: 'False'
+    });
+  }
+});
 
   // Load saved keybinds
   fetch('/api/load')
@@ -116,6 +120,12 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .then(data => {
       console.log("Loaded data:", data);
+      const array = ["closedOff","pointer","peace","pinch1","pinch2","rocker","call","thumbsup"];
+
+      // array.forEach((key,i) =>{
+      document.getElementById(key).value = data.finalKeybinds.array[i].value;
+      document.getElementById(`${key}-scroll`).value = data.finalKeybinds.array[i].value;
+      });//
       document.getElementById('closedInput').value = data.closedOff.value;
       document.getElementById('pointerInput').value = data.pointer.value;
       document.getElementById('peaceInput').value = data.peace.value;
@@ -126,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById('thumbsInput').value = data.thumbsup.value;
     })
     .catch(err => console.error("Error loading data:", err));
-}); // ✅ closes DOMContentLoaded
+});
 
 function sendData() {
   const finalKeybinds = {
@@ -134,7 +144,7 @@ function sendData() {
       closedOff: {
         value: document.getElementById('closedInput').value,
         repeat: false,
-        scroll: 0
+        scroll: document.getElementById('closedInput-scroll').value
       },
       pointer: {
         value: document.getElementById('pointerInput').value,

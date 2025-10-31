@@ -4,7 +4,8 @@ body{
     font-family: Arial, sans-serif;
     text-align:center ;
     align-items: center;
-
+    min-width:600px;
+    min-height: 100vh;
 }
 .container{
 
@@ -43,6 +44,10 @@ max-width:150px;
 border : solid black 1px;}
 .color:hover{
     color:blue;
+    padding:10px;
+    background-color: #ebeced;
+    border-radius:10px;
+    transition: all 0.3s ease-out;
 }
 
 input{
@@ -70,6 +75,7 @@ button{
 }
 
 button:hover{
+
     color:white;
     cursor: pointer;
     background-color: #1c6625;
