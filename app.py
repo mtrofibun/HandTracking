@@ -15,10 +15,7 @@ webcam_off = False
 
 
 
-with open(SAVE_FILE) as l:
-    file = json.load(l)
-    keybinds = file
-
+keybinds = {}
 
 
 # camera
@@ -197,66 +194,74 @@ cv2.destroyAllWindows()
 #routes
 
 
+if os.path.exists(SAVE_FILE):
+    with open(SAVE_FILE) as f:
+        keybinds = json.load(f)
+        print("Initial keybinds loaded:", keybinds)
+
+
 def save(binds):
-    with open(SAVE_FILE,'w') as f:
-        json.dump(binds,f)
-        saved = json.loads(binds)
-        global keybinds
-        keybinds = saved
-        print("saved", binds)
-        print("saved", keybinds)
+    with open(SAVE_FILE, 'w') as f:
+        json.dump(binds, f)
+
+    global keybinds
+    keybinds = binds
+    print("saved keybinds:", keybinds)
+
 
 def load():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE) as f:
             data = json.load(f)
-            keybinds['closedOff'] = data["finalKeybinds"]["closedOff"]["value"]
-            keybinds['pointer'] = data["finalKeybinds"]["pointer"]["value"]
-            keybinds['peace'] = data["finalKeybinds"]["peace"]["value"]
-            keybinds['pinch1'] = data["finalKeybinds"]["pinch1"]["value"]
-            keybinds['pinch2']  = data["finalKeybinds"]["pinch2"]["value"]
-            keybinds['rocker'] = data["finalKeybinds"]["rocker"]["value"]
-            keybinds['call'] = data["finalKeybinds"]["call"]["value"]
-            keybinds['thumbsup'] = data["finalKeybinds"]["thumbsup"]["value"]
-            print("load", keybinds)
+            global keybinds
+            keybinds = data
+            print("loaded keybinds:", keybinds)
+            return data
+
+    return {"finalKeybinds": {}}
 
 app = Flask(__name__)
+
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
+
 @app.route('/api/load')
 def load_route():
-    with open(SAVE_FILE,'r') as f:
-        data = json.load(f)
-        print("load")
-        return jsonify(data["finalKeybinds"])
+    data = load()
+    print("load")
+    return jsonify(data["finalKeybinds"])
+
 
 @app.route('/video_feed')
 def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/api/buttonclick',methods=['POST'])
+
+@app.route('/api/buttonclick', methods=['POST'])
 def button_click():
     data = request.get_json()
-
     save(data)
     message = "Changes are saved"
     print('Changes have been saved')
     return jsonify({"message": message})
 
-@app.route('/webcam')
-def webcam(response):
+
+@app.route('/webcam', methods=['POST'])
+def webcam():
     global webcam_off
-    webcam_off = response
+    webcam_off = request.data.decode('utf-8')
+    print(f"Webcam toggled: {webcam_off}")
+    return jsonify({"status": "ok"})
 
 
 def start_flask():
     app.run(host="127.0.0.1", port=5000)
 
+
 if __name__ == '__main__':
     threading.Thread(target=start_flask, daemon=True).start()
-
-    webview.create_window('Handtracking Application',"http://127.0.0.1:5000/")
+    webview.create_window('Handtracking Application', "http://127.0.0.1:5000/")
     webview.start()

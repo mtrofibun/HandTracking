@@ -17,8 +17,8 @@
     <div class = "hand-input">
         <h2 style = "padding:10px;">Closed Hand</h2>
 
-<label class = "color" id = "closed" for = "closedInput">Value : </label>
-<input type = "text"  id = "closedInput">
+<label class = "color" id = "closed" for = "closedOffInput">Value : </label>
+<input type = "text"  id = "closedOffInput">
 
     <label for = "closedOff-repeat">Repeat</label>
     <input id = "closedOff-repeat" type = "checkbox">
@@ -30,38 +30,117 @@
 <img src = '../static/handgraphics/closed.jpg' style = "width:90px; margin-left:50px;">
 </div>
     <div class = "box">
-<label class = "color" id = "pointer" for = "pointerInput">Pointer finger : </label>
+        <div class = "hand-input">
+
+
+<h2 style = "padding:10px;">Pointer</h2>
+
+<label class = "color" id = "pointerLabel" for = "pointerInput">Value : </label>
 <input type = "text"  id = "pointerInput">
+
+    <label for = "pointer-repeat">Repeat</label>
+    <input id = "pointer-repeat" type = "checkbox">
+
+    <label for = "pointer-scroll">Scrolling Value</label>
+    <input id ="pointer-scroll" type = "text">
+             </div>
 <img src = '../static/handgraphics/pointer.png' style = "width:100px; margin-left:50px;">
     </div>
 <div class = "box">
-<label class = "color" id = "peace" for = "peaceInput">Peace Sign : </label>
+
+ <div class = "hand-input">
+
+<h2 style = "padding:10px;">Peace Sign</h2>
+
+<label class = "color" id = "peace" for = "peaceInput">Value : </label>
 <input type = "text"  id = "peaceInput">
+
+    <label for = "peace-repeat">Repeat</label>
+    <input id = "peace-repeat" type = "checkbox">
+
+    <label for = "peace-scroll">Scrolling Value</label>
+    <input id ="peace-scroll" type = "text">
+             </div>
 <img src = '../static/handgraphics/peace.png' style = "width:100px; margin-left:50px;">
     </div>
     <div class = "box">
-<label class = "color" id = "pinch1" for = "pinch1Input">Pinch In : </label>
-<input type = "text" id = "pinch1Input">
+<div class = "hand-input">
+
+<h2 style = "padding:10px;">Pinch In</h2>
+
+<label class = "color" id = "pinch1" for = "pinch1Input">Value : </label>
+<input type = "text"  id = "pinch1Input">
+
+    <label for = "pinch1-repeat">Repeat</label>
+    <input id = "pinch1-repeat" type = "checkbox">
+
+    <label for = "pinch1-scroll">Scrolling Value</label>
+    <input id ="pinch1-scroll" type = "text">
+             </div>
 <img src = '../static/handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
     </div>
        <div class = "box">
-<label id = "pinch2" for = "pinch2Input">Pinch Out : </label>
+<div class = "hand-input">
+
+<h2 style = "padding:10px;">Pinch Out</h2>
+
+<label class = "color" id = "pinch2" for = "pinch2Input">Value : </label>
 <input type = "text"  id = "pinch2Input">
-<img src = '../static/handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
+
+    <label for = "pinch2-repeat">Repeat</label>
+    <input id = "pinch2-repeat" type = "checkbox">
+
+    <label for = "pinch2-scroll">Scrolling Value</label>
+    <input id ="pinch2-scroll" type = "text">
+             </div>
+<img src = '../static/handgraphics/pinch2.png' style = "width:100px; margin-left:50px;">
     </div>
     <div class = "box">
-<label class = "color" id = "rocker" for = "rockerInput">Rocker Sign : </label>
+<div class = "hand-input">
+
+<h2 style = "padding:10px;">Rocker Sign</h2>
+
+<label class = "color" id = "rocker" for = "rockerInput">Value : </label>
 <input type = "text"  id = "rockerInput">
+
+    <label for = "rocker-repeat">Repeat</label>
+    <input id = "rocker-repeat" type = "checkbox">
+
+    <label for = "rocker-scroll">Scrolling Value</label>
+    <input id ="rocker-scroll" type = "text">
+             </div>
 <img src = '../static/handgraphics/rocker.png' style = "width:100px; margin-left:50px;">
     </div>
     <div class = "box">
-<label class = "color" id = "call" for = "callInput">Calling Sign : </label>
+<div class = "hand-input">
+
+<h2 style = "padding:10px;">Call Sign</h2>
+
+<label class = "color" id = "call" for = "callInput">Value : </label>
 <input type = "text"  id = "callInput">
+
+    <label for = "call-repeat">Repeat</label>
+    <input id = "call-repeat" type = "checkbox">
+
+    <label for = "call-scroll">Scrolling Value</label>
+    <input id ="call-scroll" type = "text">
+             </div>
 <img src = '../static/handgraphics/call.png' style = "width:100px; margin-left:50px;">
     </div>
         <div class = "box">
-<label class = "color" id = "thumbs" for = "thumbsInput">Thumbs Up : </label>
-<input type = "text"  id = "thumbsInput">
+<div class = "hand-input">
+
+<h2 style = "padding:10px;">Thumbs Up</h2>
+
+<label class = "color" id = "thumbsup" for = "thumbsupInput">Value : </label>
+<input type = "text"  id = "thumbsupInput">
+
+    <label for = "thumbsup-repeat">Repeat</label>
+    <input id = "thumbsup-repeat" type = "checkbox">
+
+    <label for = "thumbsup-scroll">Scrolling Value</label>
+    <input id ="thumbsup-scroll" type = "text">
+             </div>
 <img src = '../static/handgraphics/thumbs.png' style = "width:100px; margin-left:50px;">
     </div>
 
@@ -83,7 +162,6 @@
 
 
 <script>
-let isClicked = false;
 // to do :
  try to fix toggle webcam,
  find a easier way to find out if a box was checked then save it and try to get the saved data into the front end
@@ -94,46 +172,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const webcam_off = document.getElementById('webcam');
   const toggleButton = document.getElementById('toggle-webcam');
 
-toggleButton.addEventListener('change', () => {
-  if (toggleButton.checked) {
-    webcam_off.style.display = "none";
-    fetch('/webcam', {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: 'True'
-    });
-  } else {
-    webcam_off.style.display = "block";
-    fetch('/webcam', {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: 'False'
-    });
-  }
-});
+  toggleButton.addEventListener('change', () => {
+    if (toggleButton.checked) {
+      webcam_off.style.display = "none";
+      fetch('/webcam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: 'True'
+      });
+    } else {
+      webcam_off.style.display = "block";
+      fetch('/webcam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: 'False'
+      });
+    }
+  });
 
   // Load saved keybinds
   fetch('/api/load')
-    .then(res => {
-      console.log("Response status:", res.status);
-      return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
       console.log("Loaded data:", data);
-      const array = ["closedOff","pointer","peace","pinch1","pinch2","rocker","call","thumbsup"];
+      const array = ["closedOff", "pointer", "peace", "pinch1", "pinch2", "rocker", "call", "thumbsup"];
 
-      // array.forEach((key,i) =>{
-      document.getElementById(key).value = data.finalKeybinds.array[i].value;
-      document.getElementById(`${key}-scroll`).value = data.finalKeybinds.array[i].value;
-      });//
-      document.getElementById('closedInput').value = data.closedOff.value;
-      document.getElementById('pointerInput').value = data.pointer.value;
-      document.getElementById('peaceInput').value = data.peace.value;
-      document.getElementById('pinch1Input').value = data.pinch1.value;
-      document.getElementById('pinch2Input').value = data.pinch2.value;
-      document.getElementById('rockerInput').value = data.rocker.value;
-      document.getElementById('callInput').value = data.call.value;
-      document.getElementById('thumbsInput').value = data.thumbsup.value;
+      array.forEach((key) => {
+        const valueInput = document.getElementById(`${key}Input`);
+        const scrollInput = document.getElementById(`${key}-scroll`);
+
+        if (valueInput && data[key]) {
+          valueInput.value = data[key].value || '';
+        }
+        if (scrollInput && data[key]) {
+          scrollInput.value = data[key].scroll || '';
+        }
+      });
     })
     .catch(err => console.error("Error loading data:", err));
 });
@@ -142,44 +216,44 @@ function sendData() {
   const finalKeybinds = {
     finalKeybinds: {
       closedOff: {
-        value: document.getElementById('closedInput').value,
+        value: document.getElementById('closedOffInput').value,
         repeat: false,
-        scroll: document.getElementById('closedInput-scroll').value
+        scroll: document.getElementById('closedOff-scroll').value
       },
       pointer: {
         value: document.getElementById('pointerInput').value,
         repeat: false,
-        scroll: 0
+        scroll: document.getElementById('pointer-scroll').value
       },
       peace: {
         value: document.getElementById('peaceInput').value,
         repeat: false,
-        scroll: 0
+        scroll: document.getElementById('peace-scroll').value
       },
       pinch1: {
-        value: 'scroll in',
+        value: document.getElementById('pinch1Input').value,
         repeat: false,
-        scroll: 150
+        scroll: document.getElementById('pinch1-scroll').value
       },
       pinch2: {
-        value: 'scroll out',
+        value: document.getElementById('pinch2Input').value,
         repeat: false,
-        scroll: 150
+        scroll: document.getElementById('pinch2-scroll').value
       },
       rocker: {
         value: document.getElementById('rockerInput').value,
         repeat: false,
-        scroll: 0
+        scroll: document.getElementById('rocker-scroll').value
       },
       call: {
         value: document.getElementById('callInput').value,
         repeat: false,
-        scroll: 0
+        scroll: document.getElementById('call-scroll').value
       },
       thumbsup: {
-        value: document.getElementById('thumbsInput').value,
+        value: document.getElementById('thumbsupInput').value,
         repeat: false,
-        scroll: 0
+        scroll: document.getElementById('thumbsup-scroll').value
       }
     }
   };
@@ -197,7 +271,6 @@ function sendData() {
     })
     .catch(err => console.error("Error calling API:", err));
 }
-
 </script>
 
 </body>
