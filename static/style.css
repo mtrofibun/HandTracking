@@ -10,7 +10,7 @@ body{
 .container{
 
     max-width:100%;
-    display:flex;
+    display:block;
 
 }
 .box{
@@ -21,6 +21,7 @@ body{
     margin:10px;
     color: black;
     display: flex;
+
   justify-content: center;
   align-items: center;
 
@@ -59,7 +60,7 @@ input{
 
 .binds{
     display:flex-inline;
-    width:50%;
+
     border : solid #D3D3D3 1.9px;
     border-radius : 8px;
 }

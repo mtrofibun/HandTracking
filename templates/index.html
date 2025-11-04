@@ -9,9 +9,18 @@
 <body>
 <div class= "container">
 
+
+    <div class = "video">
+        <h1>Camera</h1>
+        <div>
+        <label for = "toggle-webcam">Toggle Camera</label>
+        <input type="checkbox" name="optionName" id = "toggle-webcam" value="optionValue">
+            </div>
+     <img src="/video_feed" id = "webcam">
+</div>
 <div class ="binds">
 <h1>Key Binds</h1>
-
+<div class = "container-binds" style = "height:300px; overflow: scroll;">
 
 <div class = "box">
     <div class = "hand-input">
@@ -143,31 +152,16 @@
              </div>
 <img src = '../static/handgraphics/thumbs.png' style = "width:100px; margin-left:50px;">
     </div>
-
+</div>
 <h1 id = "response"></h1>
 <button id = "allchanges" onclick = "sendData()" >Submit All Changes</button>
 </div>
-
-    <div class = "video">
-        <h1>Camera</h1>
-        <div>
-        <label for = "toggle-webcam">Toggle Camera</label>
-        <input type="checkbox" name="optionName" id = "toggle-webcam" value="optionValue">
-            </div>
-     <img src="/video_feed" id = "webcam">
-</div>
-
     </div>
 
 
 
 <script>
-// to do :
- try to fix toggle webcam,
- find a easier way to find out if a box was checked then save it and try to get the saved data into the front end
- fix front end css its lowkey ugly
- if you want to add more simple gestures ig do that too??
- //
+
 document.addEventListener("DOMContentLoaded", () => {
   const webcam_off = document.getElementById('webcam');
   const toggleButton = document.getElementById('toggle-webcam');
@@ -181,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: 'True'
       });
     } else {
-      webcam_off.style.display = "block";
+      webcam_off.style.display = "flex";
       fetch('/webcam', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -202,10 +196,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const scrollInput = document.getElementById(`${key}-scroll`);
 
         if (valueInput && data[key]) {
-          valueInput.value = data[key].value || '';
+          valueInput.value = data[key].value || 'b';
         }
         if (scrollInput && data[key]) {
-          scrollInput.value = data[key].scroll || '';
+          scrollInput.value = data[key].scroll || '0';
         }
       });
     })

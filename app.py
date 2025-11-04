@@ -53,7 +53,10 @@ def normalize_landmarks(landmarks):
 
 def enable_keybind(value):
         if isinstance(value, list):
-            pyautogui.hotkey(value[0], value[1])
+            if len(value) >= 3:
+                pyautogui.hotkey(value[0], value[1],value[2])
+            else:
+                pyautogui.hotkey(value[0], value[1])
         else:
             pyautogui.press(value)
 
@@ -134,7 +137,7 @@ def gen_frames():
 
                 #output works we just need to make sure it doesn't overlap pinch1 + 2 + pinky??
 
-                if not is_pinch(hand_landmarks) and not is_pinch_2(hand_landmarks) and webcam_off is False:
+                if not is_pinch(hand_landmarks) and not is_pinch_2(hand_landmarks):
                     norm_landmarks = normalize_landmarks(hand_landmarks.landmark)
                     row = [coord for lm in norm_landmarks for coord in lm]
                     x = np.array(row).reshape(1, -1)
@@ -143,8 +146,11 @@ def gen_frames():
                     print(keybinds)
                     if output != "open":
 
-                        if keybinds['finalKeybinds'][output]["scroll"] != 0:
-                            pyautogui.scroll(keybinds["finalKeybinds"][output]["scroll"])
+                        if keybinds['finalKeybinds'][output]["scroll"] != '0':
+                            print("scrolling")
+                            scrollValue = int(keybinds["finalKeybinds"][output]["scroll"])
+                            print(scrollValue)
+                            pyautogui.scroll(scrollValue)
                         else:
                             newValue = strip_input(keybinds["finalKeybinds"][output]["value"])
                             enable_keybind(newValue)
@@ -156,8 +162,10 @@ def gen_frames():
 
                 if is_pinch(hand_landmarks):
 
-                    if keybinds["finalKeybinds"]['pinch1']['scroll'] != 0:
-                        pyautogui.scroll(keybinds["finalKeybinds"]['pinch1']['scroll'])
+                    if keybinds["finalKeybinds"]['pinch1']['scroll'] != '0':
+                        scrollValue = int(keybinds["finalKeybinds"]['pinch1']["scroll"])
+                        print(scrollValue)
+                        pyautogui.scroll(scrollValue)
                     else:
                         newPinchValue = strip_input(keybinds["finalKeybinds"]['pinch1']['value'])
                         pinch1Check += 1
@@ -168,8 +176,10 @@ def gen_frames():
                     pinch1Check = 0
 
                 if is_pinch_2(hand_landmarks):
-                    if keybinds['finalKeybinds']['pinch2']['scroll'] != 0:
-                        pyautogui.scroll(keybinds['finalKeybinds']['pinch2']['scroll'])
+                    if keybinds['finalKeybinds']['pinch2']['scroll'] != '0':
+                        scrollValue = int(keybinds["finalKeybinds"]['pinch2']["scroll"])
+                        print(scrollValue)
+                        pyautogui.scroll(scrollValue)
                     else:
                         newPinchValue = strip_input(keybinds['finalKeybinds']['pinch2']['value'])
                         pinch1Check += 1
