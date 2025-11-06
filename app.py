@@ -3,23 +3,14 @@ from flask import Flask, render_template, request, jsonify,Response
 import threading,os,json,cv2,pyautogui, math
 import mediapipe as mp
 import numpy as np
+import time
 from pyparsing import results
 SAVE_FILE = 'saved_data.json'
 
-# need undo and redo gesture
-# add hide camera button
-# can do pinky, maybe thumbs up by making thumb index of y greater than all the indexs
-# reassign variables when saving not when active in the camera to reduce copies
 
 webcam_off = False
 
-
-
-with open(SAVE_FILE) as l:
-    file = json.load(l)
-    keybinds = file
-
-
+keybinds = {}
 
 # camera
 mp_drawing = mp.solutions.drawing_utils
@@ -39,6 +30,12 @@ cam = cv2.VideoCapture(0)
 frame_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+def calculate_scroll(value,number):
+    value = value.split(" ")
+    if value[1] == 'out':
+        number = number * -1
+    return number
+
 def strip_input(keybindValue):
     keybindValue = keybindValue.lower()
     if len(keybindValue) > 1:
@@ -56,7 +53,10 @@ def normalize_landmarks(landmarks):
 
 def enable_keybind(value):
         if isinstance(value, list):
-            pyautogui.hotkey(value[0], value[1])
+            if len(value) >= 3:
+                pyautogui.hotkey(value[0], value[1],value[2])
+            else:
+                pyautogui.hotkey(value[0], value[1])
         else:
             pyautogui.press(value)
 
@@ -135,19 +135,22 @@ def gen_frames():
                     image, hand_landmarks, mp_hands.HAND_CONNECTIONS
                 )
 
-                #output works we just need to make sure it doesn't overlap pinch1 + 2 + pinky??
 
-                if not is_pinch(hand_landmarks) and not is_pinch_2(hand_landmarks) and webcam_off is False:
+
+                if not is_pinch(hand_landmarks) and not is_pinch_2(hand_landmarks):
                     norm_landmarks = normalize_landmarks(hand_landmarks.landmark)
                     row = [coord for lm in norm_landmarks for coord in lm]
                     x = np.array(row).reshape(1, -1)
                     output = model.predict(x)[0]
-                    # keybinds doesn't have scroll we can add that for it to be easier
+                    # for repeat we can do while loop for current gesture then when changes take maybe use with hold?
                     print(keybinds)
                     if output != "open":
 
-                        if keybinds['finalKeybinds'][output]["scroll"] != 0:
-                            pyautogui.scroll(keybinds["finalKeybinds"][output]["scroll"])
+                        if keybinds['finalKeybinds'][output]["scroll"] != '0':
+                            print("scrolling")
+                            scrollValue = int(keybinds["finalKeybinds"][output]["scroll"])
+                            newscrollValue = calculate_scroll(keybinds['finalKeybinds'][output]["value"],scrollValue)
+                            pyautogui.scroll(newscrollValue)
                         else:
                             newValue = strip_input(keybinds["finalKeybinds"][output]["value"])
                             enable_keybind(newValue)
@@ -159,8 +162,11 @@ def gen_frames():
 
                 if is_pinch(hand_landmarks):
 
-                    if keybinds["finalKeybinds"]['pinch1']['scroll'] != 0:
-                        pyautogui.scroll(keybinds["finalKeybinds"]['pinch1']['scroll'])
+                    if keybinds["finalKeybinds"]['pinch1']['scroll'] != '0':
+                        scrollValue = int(keybinds["finalKeybinds"]['pinch1']["scroll"])
+                        newscrollValue = calculate_scroll(keybinds['finalKeybinds']['pinch1']["value"], scrollValue)
+                        pyautogui.scroll(newscrollValue)
+                        print(newscrollValue)
                     else:
                         newPinchValue = strip_input(keybinds["finalKeybinds"]['pinch1']['value'])
                         pinch1Check += 1
@@ -171,8 +177,11 @@ def gen_frames():
                     pinch1Check = 0
 
                 if is_pinch_2(hand_landmarks):
-                    if keybinds['finalKeybinds']['pinch2']['scroll'] != 0:
-                        pyautogui.scroll(keybinds['finalKeybinds']['pinch2']['scroll'])
+                    if keybinds['finalKeybinds']['pinch2']['scroll'] != '0':
+                        scrollValue = int(keybinds["finalKeybinds"]['pinch2']["scroll"])
+                        newscrollValue = calculate_scroll(keybinds['finalKeybinds']['pinch2']["value"], scrollValue)
+                        pyautogui.scroll(newscrollValue)
+                        print(newscrollValue)
                     else:
                         newPinchValue = strip_input(keybinds['finalKeybinds']['pinch2']['value'])
                         pinch1Check += 1
@@ -197,66 +206,74 @@ cv2.destroyAllWindows()
 #routes
 
 
+if os.path.exists(SAVE_FILE):
+    with open(SAVE_FILE) as f:
+        keybinds = json.load(f)
+        print("Initial keybinds loaded:", keybinds)
+
+
 def save(binds):
-    with open(SAVE_FILE,'w') as f:
-        json.dump(binds,f)
-        saved = json.loads(binds)
-        global keybinds
-        keybinds = saved
-        print("saved", binds)
-        print("saved", keybinds)
+    with open(SAVE_FILE, 'w') as f:
+        json.dump(binds, f)
+
+    global keybinds
+    keybinds = binds
+    print("saved keybinds:", keybinds)
+
 
 def load():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE) as f:
             data = json.load(f)
-            keybinds['closedOff'] = data["finalKeybinds"]["closedOff"]["value"]
-            keybinds['pointer'] = data["finalKeybinds"]["pointer"]["value"]
-            keybinds['peace'] = data["finalKeybinds"]["peace"]["value"]
-            keybinds['pinch1'] = data["finalKeybinds"]["pinch1"]["value"]
-            keybinds['pinch2']  = data["finalKeybinds"]["pinch2"]["value"]
-            keybinds['rocker'] = data["finalKeybinds"]["rocker"]["value"]
-            keybinds['call'] = data["finalKeybinds"]["call"]["value"]
-            keybinds['thumbsup'] = data["finalKeybinds"]["thumbsup"]["value"]
-            print("load", keybinds)
+            global keybinds
+            keybinds = data
+            print("loaded keybinds:", keybinds)
+            return data
+
+    return {"finalKeybinds": {}}
 
 app = Flask(__name__)
+
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
+
 @app.route('/api/load')
 def load_route():
-    with open(SAVE_FILE,'r') as f:
-        data = json.load(f)
-        print("load")
-        return jsonify(data["finalKeybinds"])
+    data = load()
+    print("load")
+    return jsonify(data["finalKeybinds"])
+
 
 @app.route('/video_feed')
 def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/api/buttonclick',methods=['POST'])
+
+@app.route('/api/buttonclick', methods=['POST'])
 def button_click():
     data = request.get_json()
-
     save(data)
     message = "Changes are saved"
     print('Changes have been saved')
     return jsonify({"message": message})
 
-@app.route('/webcam')
-def webcam(response):
+
+@app.route('/webcam', methods=['POST'])
+def webcam():
     global webcam_off
-    webcam_off = response
+    webcam_off = request.data.decode('utf-8')
+    print(f"Webcam toggled: {webcam_off}")
+    return jsonify({"status": "ok"})
 
 
 def start_flask():
     app.run(host="127.0.0.1", port=5000)
 
+
 if __name__ == '__main__':
     threading.Thread(target=start_flask, daemon=True).start()
-
-    webview.create_window('Handtracking Application',"http://127.0.0.1:5000/")
+    webview.create_window('Handtracking Application', "http://127.0.0.1:5000/")
     webview.start()

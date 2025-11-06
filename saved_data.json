@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 {
   "finalKeybinds": {
     "closedOff": {
@@ -42,3 +43,6 @@
     }
   }
 }
+=======
+{"finalKeybinds": {"closedOff": {"value": "b", "repeat": false, "scroll": "0"}, "pointer": {"value": "b", "repeat": false, "scroll": "0"}, "peace": {"value": "ctrl x", "repeat": false, "scroll": "0"}, "pinch1": {"value": "scroll in", "repeat": false, "scroll": "150"}, "pinch2": {"value": "scroll out", "repeat": false, "scroll": "150"}, "rocker": {"value": "n", "repeat": false, "scroll": "0"}, "call": {"value": "e", "repeat": false, "scroll": "0"}, "thumbsup": {"value": "e", "repeat": false, "scroll": "0"}}}
+>>>>>>> Stashed changes

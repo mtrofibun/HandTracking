@@ -14,8 +14,6 @@ body{
 }
 .box{
     color:white;
-    box-shadow:1px 1px 8px rgb(0,0,0,0.2);
-    border-radius : 8px;
     padding:10px;
     margin:10px;
     color: black;
@@ -73,4 +71,10 @@ button:hover{
     color:white;
     cursor: pointer;
     background-color: #1c6625;
+}
+
+.container-binds {
+display:block;
+height:300px;
+overflow: scroll;
 }

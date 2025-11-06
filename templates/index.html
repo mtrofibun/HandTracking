@@ -68,7 +68,7 @@
 <button id = "allchanges" onclick = "sendData()" >Submit All Changes</button>
 </div>
 
-    <div class = "video">
+    <div class = "video" style = "padding:10px; margin:10px;">
         <h1>Camera</h1>
         <div>
         <label for = "toggle-webcam">Toggle Camera</label>
@@ -76,6 +76,12 @@
             </div>
      <img src="/video_feed" id = "webcam">
 </div>
+<<<<<<< Updated upstream
+=======
+<div class ="binds">
+<h1>Key Binds</h1>
+<div class = "container-binds" >
+>>>>>>> Stashed changes
 
     </div>
 
@@ -99,7 +105,11 @@ document.addEventListener("DOMContentLoaded", () => {
         body: 'True'
       });
     } else {
+<<<<<<< Updated upstream
       webcam_off.style.display = "block";
+=======
+      webcam_off.style.display = "revert";
+>>>>>>> Stashed changes
       fetch('/webcam', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
