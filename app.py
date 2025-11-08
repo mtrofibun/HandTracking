@@ -106,14 +106,14 @@ def is_pinch_2(hand_landmarks):
 
 
 pinch1Check,pinch2Check = 0,0
-previousState = 0
-currentState = 0
+previousState = 'none'
+currentState = 'none'
 gestureStartTime = 0
-THRESHOLD = 0.3
+THRESHOLD = 0.1
 
 
 def gen_frames():
-    global pinch1Check, pinch2Check
+    global pinch1Check, pinch2Check, currentState, gestureStartTime, THRESHOLD, previousState
 
     cam = cv2.VideoCapture(0)
 
