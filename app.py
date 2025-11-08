@@ -106,6 +106,11 @@ def is_pinch_2(hand_landmarks):
 
 
 pinch1Check,pinch2Check = 0,0
+previousState = 0
+currentState = 0
+gestureStartTime = 0
+THRESHOLD = 0.3
+
 
 def gen_frames():
     global pinch1Check, pinch2Check
@@ -142,21 +147,34 @@ def gen_frames():
                     row = [coord for lm in norm_landmarks for coord in lm]
                     x = np.array(row).reshape(1, -1)
                     output = model.predict(x)[0]
+
+                    currentTime = time.time()
+
+
                     # for repeat we can do while loop for current gesture then when changes take maybe use with hold?
                     print(keybinds)
                     if output != "open":
-
-                        if keybinds['finalKeybinds'][output]["scroll"] != '0':
-                            print("scrolling")
-                            scrollValue = int(keybinds["finalKeybinds"][output]["scroll"])
-                            newscrollValue = calculate_scroll(keybinds['finalKeybinds'][output]["value"],scrollValue)
-                            pyautogui.scroll(newscrollValue)
+                        if output != currentState :
+                            currentState = output
+                            gestureStartTime = currentTime
                         else:
-                            newValue = strip_input(keybinds["finalKeybinds"][output]["value"])
-                            enable_keybind(newValue)
+                            if currentTime - gestureStartTime >= THRESHOLD:
+                                previousState = currentState
+                                if keybinds['finalKeybinds'][output]["scroll"] != '0':
+                                    print("scrolling")
+                                    scrollValue = int(keybinds["finalKeybinds"][output]["scroll"])
+                                    newscrollValue = calculate_scroll(keybinds['finalKeybinds'][output]["value"],
+                                                                      scrollValue)
+                                    pyautogui.scroll(newscrollValue)
+                                else:
+                                    newValue = strip_input(keybinds["finalKeybinds"][output]["value"])
+                                    enable_keybind(newValue)
+                                cv2.putText(image, f"{output} sign : {keybinds['finalKeybinds'][output]['value']}",
+                                            (50, 50),
+                                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 
-                        cv2.putText(image, f"{output} sign : {keybinds['finalKeybinds'][output]['value']}", (50, 50),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+
+
 
 
 

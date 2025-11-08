@@ -10,7 +10,7 @@
 <div class= "container">
 
 
-    <div class = "video" style = "padding:10px; margin:10px;">
+    <div class = "video">
         <h1>Camera</h1>
         <div>
         <label for = "toggle-webcam">Toggle Camera</label>
@@ -20,7 +20,7 @@
 </div>
 <div class ="binds">
 <h1>Key Binds</h1>
-<div class = "container-binds" >
+<div class = "container-binds" style = "height:300px; overflow: scroll;">
 
 <div class = "box">
     <div class = "hand-input">
@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: 'True'
       });
     } else {
-      webcam_off.style.display = "revert";
+      webcam_off.style.display = "flex";
       fetch('/webcam', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
