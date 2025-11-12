@@ -151,24 +151,38 @@ def gen_frames():
                     currentTime = time.time()
 
 
-                    # for repeat we can do while loop for current gesture then when changes take maybe use with hold?
-                    print(keybinds)
                     if output != "open":
                         if output != currentState :
                             currentState = output
                             gestureStartTime = currentTime
                         else:
                             if currentTime - gestureStartTime >= THRESHOLD:
-                                previousState = currentState
-                                if keybinds['finalKeybinds'][output]["scroll"] != '0':
-                                    print("scrolling")
-                                    scrollValue = int(keybinds["finalKeybinds"][output]["scroll"])
-                                    newscrollValue = calculate_scroll(keybinds['finalKeybinds'][output]["value"],
-                                                                      scrollValue)
-                                    pyautogui.scroll(newscrollValue)
-                                else:
-                                    newValue = strip_input(keybinds["finalKeybinds"][output]["value"])
-                                    enable_keybind(newValue)
+                                if keybinds['finalKeybinds'][output]['repeat'] == True:
+                                    print(f"{keybinds['finalKeybinds'][output]['repeat']}")
+                                    if keybinds['finalKeybinds'][previousState]["scroll"] != '0':
+                                        print("scrolling")
+                                        scrollValue = int(keybinds["finalKeybinds"][previousState]["scroll"])
+                                        newscrollValue = calculate_scroll(
+                                            keybinds['finalKeybinds'][previousState]["value"],
+                                            scrollValue)
+                                        pyautogui.scroll(newscrollValue)
+                                    else:
+                                        newValue = strip_input(keybinds["finalKeybinds"][previousState]["value"])
+                                        enable_keybind(newValue)
+
+                                elif previousState != currentState and keybinds['finalKeybinds'][output]['repeat'] == False:
+                                    previousState = currentState
+                                    print(f"{keybinds['finalKeybinds'][output]['repeat']}")
+                                    if keybinds['finalKeybinds'][previousState]["scroll"] != '0':
+                                        print("scrolling")
+                                        scrollValue = int(keybinds["finalKeybinds"][previousState]["scroll"])
+                                        newscrollValue = calculate_scroll(keybinds['finalKeybinds'][previousState]["value"],
+                                                                          scrollValue)
+                                        pyautogui.scroll(newscrollValue)
+                                    else:
+                                        newValue = strip_input(keybinds["finalKeybinds"][previousState]["value"])
+                                        enable_keybind(newValue)
+
                                 cv2.putText(image, f"{output} sign : {keybinds['finalKeybinds'][output]['value']}",
                                             (50, 50),
                                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)

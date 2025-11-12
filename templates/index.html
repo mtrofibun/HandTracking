@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: 'True'
       });
     } else {
-      webcam_off.style.display = "flex";
+      webcam_off.style.display = "revert";
       fetch('/webcam', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -207,6 +207,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function sendData() {
+
+   //let checkArray = []
+  //const boxes = document.querySelectorAll(\"input[type=checkbox]\").forEach
+
+  //boxes.forEach(box => {
+    //if(box.checked){
+    //checkArray.push('true');
+    //}
+    //else{
+    //checkArray.push('false')}
+  //});
   const finalKeybinds = {
     finalKeybinds: {
       closedOff: {
