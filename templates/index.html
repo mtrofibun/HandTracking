@@ -193,10 +193,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       array.forEach((key) => {
         const valueInput = document.getElementById(`${key}Input`);
+        const repeatInput = document.getElementById(`${key}-repeat`);
         const scrollInput = document.getElementById(`${key}-scroll`);
 
         if (valueInput && data[key]) {
           valueInput.value = data[key].value || 'b';
+        }
+        if(repeatInput && data[key] && data[key].repeat == true){
+           repeatInput.checked = true
         }
         if (scrollInput && data[key]) {
           scrollInput.value = data[key].scroll || '0';
@@ -208,56 +212,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function sendData() {
 
-   //let checkArray = []
-  //const boxes = document.querySelectorAll(\"input[type=checkbox]\").forEach
+   let checkArray = []
+  const boxes = document.querySelectorAll("input[type=checkbox]")
 
-  //boxes.forEach(box => {
-    //if(box.checked){
-    //checkArray.push('true');
-    //}
-    //else{
-    //checkArray.push('false')}
-  //});
+  boxes.forEach(box => {
+    if(box.checked){
+    checkArray.push('true');
+    }
+    else{
+    checkArray.push('false')}
+    console.log(checkArray[2]);
+  });
   const finalKeybinds = {
     finalKeybinds: {
       closedOff: {
         value: document.getElementById('closedOffInput').value,
-        repeat: false,
+        repeat: checkArray[1],
         scroll: document.getElementById('closedOff-scroll').value
       },
       pointer: {
         value: document.getElementById('pointerInput').value,
-        repeat: false,
+        repeat: checkArray[2],
         scroll: document.getElementById('pointer-scroll').value
       },
       peace: {
         value: document.getElementById('peaceInput').value,
-        repeat: false,
+        repeat: checkArray[3],
         scroll: document.getElementById('peace-scroll').value
       },
       pinch1: {
         value: document.getElementById('pinch1Input').value,
-        repeat: false,
+        repeat: checkArray[4],
         scroll: document.getElementById('pinch1-scroll').value
       },
       pinch2: {
         value: document.getElementById('pinch2Input').value,
-        repeat: false,
+        repeat: checkArray[5],
         scroll: document.getElementById('pinch2-scroll').value
       },
       rocker: {
         value: document.getElementById('rockerInput').value,
-        repeat: false,
+        repeat: checkArray[6],
         scroll: document.getElementById('rocker-scroll').value
       },
       call: {
         value: document.getElementById('callInput').value,
-        repeat: false,
+        repeat: checkArray[7],
         scroll: document.getElementById('call-scroll').value
       },
       thumbsup: {
         value: document.getElementById('thumbsupInput').value,
-        repeat: false,
+        repeat: checkArray[8],
         scroll: document.getElementById('thumbsup-scroll').value
       }
     }

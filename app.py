@@ -142,48 +142,55 @@ def gen_frames():
 
 
 
-                if not is_pinch(hand_landmarks) and not is_pinch_2(hand_landmarks):
-                    norm_landmarks = normalize_landmarks(hand_landmarks.landmark)
-                    row = [coord for lm in norm_landmarks for coord in lm]
-                    x = np.array(row).reshape(1, -1)
-                    output = model.predict(x)[0]
 
-                    currentTime = time.time()
+                norm_landmarks = normalize_landmarks(hand_landmarks.landmark)
+                row = [coord for lm in norm_landmarks for coord in lm]
+                x = np.array(row).reshape(1, -1)
+                output = model.predict(x)[0]
+                if is_pinch(hand_landmarks):
+                    gesture = 'pinch1'
+                elif is_pinch_2(hand_landmarks):
+                    gesture = 'pinch2'
+                else:
+                    gesture = output
+                currentTime = time.time()
 
 
-                    if output != "open":
-                        if output != currentState :
-                            currentState = output
-                            gestureStartTime = currentTime
-                        else:
-                            if currentTime - gestureStartTime >= THRESHOLD:
-                                if keybinds['finalKeybinds'][output]['repeat'] == True:
-                                    print(f"{keybinds['finalKeybinds'][output]['repeat']}")
-                                    if keybinds['finalKeybinds'][previousState]["scroll"] != '0':
-                                        print("scrolling")
-                                        scrollValue = int(keybinds["finalKeybinds"][previousState]["scroll"])
-                                        newscrollValue = calculate_scroll(
-                                            keybinds['finalKeybinds'][previousState]["value"],
+                if gesture != "open":
+                    if gesture != currentState:
+                        #wont work because of if not ispinch
+                        currentState = gesture
+                        gestureStartTime = currentTime
+                    else:
+                        if currentTime - gestureStartTime >= THRESHOLD:
+                            print(currentState)
+                            if keybinds['finalKeybinds'][currentState]['repeat'] == True:
+                                print(f"{keybinds['finalKeybinds'][currentState]['repeat']}")
+                                if keybinds['finalKeybinds'][currentState]["scrodll"] != '0':
+                                    print("scrolling")
+                                    scrollValue = int(keybinds["finalKeybinds"][currentState]["scroll"])
+                                    newscrollValue = calculate_scroll(
+                                            keybinds['finalKeybinds'][currentState]["value"],
                                             scrollValue)
-                                        pyautogui.scroll(newscrollValue)
-                                    else:
-                                        newValue = strip_input(keybinds["finalKeybinds"][previousState]["value"])
-                                        enable_keybind(newValue)
+                                    pyautogui.scroll(newscrollValue)
+                                else:
+                                    newValue = strip_input(keybinds["finalKeybinds"][currentState]["value"])
+                                    enable_keybind(newValue)
 
-                                elif previousState != currentState and keybinds['finalKeybinds'][output]['repeat'] == False:
-                                    previousState = currentState
-                                    print(f"{keybinds['finalKeybinds'][output]['repeat']}")
-                                    if keybinds['finalKeybinds'][previousState]["scroll"] != '0':
-                                        print("scrolling")
-                                        scrollValue = int(keybinds["finalKeybinds"][previousState]["scroll"])
-                                        newscrollValue = calculate_scroll(keybinds['finalKeybinds'][previousState]["value"],
+                            elif previousState != currentState and keybinds['finalKeybinds'][currentState]['repeat'] == False:
+                                previousState = currentState
+                                print(f"{keybinds['finalKeybinds'][output]['repeat']}")
+                                if keybinds['finalKeybinds'][previousState]["scroll"] != '0':
+                                    print("scrolling")
+                                    scrollValue = int(keybinds["finalKeybinds"][currentState]["scroll"])
+                                    newscrollValue = calculate_scroll(keybinds['finalKeybinds'][currentState]["value"],
                                                                           scrollValue)
-                                        pyautogui.scroll(newscrollValue)
-                                    else:
-                                        newValue = strip_input(keybinds["finalKeybinds"][previousState]["value"])
-                                        enable_keybind(newValue)
+                                    pyautogui.scroll(newscrollValue)
+                                else:
+                                    newValue = strip_input(keybinds["finalKeybinds"][currentState]["value"])
+                                    enable_keybind(newValue)
 
-                                cv2.putText(image, f"{output} sign : {keybinds['finalKeybinds'][output]['value']}",
+                            cv2.putText(image, f"{currentState} sign : {keybinds['finalKeybinds'][currentState]['value']}",
                                             (50, 50),
                                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 
@@ -192,36 +199,7 @@ def gen_frames():
 
 
 
-                if is_pinch(hand_landmarks):
 
-                    if keybinds["finalKeybinds"]['pinch1']['scroll'] != '0':
-                        scrollValue = int(keybinds["finalKeybinds"]['pinch1']["scroll"])
-                        newscrollValue = calculate_scroll(keybinds['finalKeybinds']['pinch1']["value"], scrollValue)
-                        pyautogui.scroll(newscrollValue)
-                        print(newscrollValue)
-                    else:
-                        newPinchValue = strip_input(keybinds["finalKeybinds"]['pinch1']['value'])
-                        pinch1Check += 1
-                        enable_keybind(newPinchValue)
-                    cv2.putText(image, f"Pinch 1 : {keybinds['finalKeybinds']['pinch1']['value']}", (50, 200),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-                else:
-                    pinch1Check = 0
-
-                if is_pinch_2(hand_landmarks):
-                    if keybinds['finalKeybinds']['pinch2']['scroll'] != '0':
-                        scrollValue = int(keybinds["finalKeybinds"]['pinch2']["scroll"])
-                        newscrollValue = calculate_scroll(keybinds['finalKeybinds']['pinch2']["value"], scrollValue)
-                        pyautogui.scroll(newscrollValue)
-                        print(newscrollValue)
-                    else:
-                        newPinchValue = strip_input(keybinds['finalKeybinds']['pinch2']['value'])
-                        pinch1Check += 1
-                        enable_keybind(newPinchValue)
-                    cv2.putText(image, f"Pinch 2 : {keybinds['finalKeybinds']['pinch2']['value']}", (50, 200),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-                else:
-                    pinch2Check = 0
 
 
             ret, buffer = cv2.imencode('.jpg', image)
