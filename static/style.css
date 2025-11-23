@@ -42,7 +42,7 @@ body{
 max-width:150px;
 }
 #webcam{
-border : solid black 1px;}
+border-radius:20px;}
 .color:hover{
     color:blue;
     padding:10px;

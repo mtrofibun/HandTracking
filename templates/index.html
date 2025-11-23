@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Title</title>
-    <link rel = 'stylesheet' href = "../static/style.css">
+    <link rel = 'stylesheet' href = "{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class= "container">
@@ -20,6 +20,7 @@
 </div>
 <div class ="binds">
 <h1>Key Binds</h1>
+    <p>Report any bugs or suggestions <a href = "https://docs.google.com/forms/d/e/1FAIpQLScq-aqL865PXh_uaqf5CPx5EMOx0h0GnF3zI7MiGljLzMqKGg/viewform?usp=dialog" target="_blank">here</a></p>
 <div class = "container-binds" style = "height:300px; overflow: scroll;">
 
 <div class = "box">
@@ -34,9 +35,8 @@
 
     <label for = "closedOff-scroll">Scrolling Value</label>
     <input id ="closedOff-scroll" type = "text">
-        <hr>
     </div>
-<img src = '../static/handgraphics/closed.jpg' style = "width:90px; margin-left:50px;">
+<img src = "{{ url_for('static', filename='handgraphics/closed.jpg') }}" style = "width:90px; margin-left:50px;">
 </div>
     <div class = "box">
         <div class = "hand-input">
@@ -53,7 +53,7 @@
     <label for = "pointer-scroll">Scrolling Value</label>
     <input id ="pointer-scroll" type = "text">
              </div>
-<img src = '../static/handgraphics/pointer.png' style = "width:100px; margin-left:50px;">
+<img src = "{{ url_for('static', filename='handgraphics/pointer.png') }}" style = "width:100px; margin-left:50px;">
     </div>
 <div class = "box">
 
@@ -70,7 +70,7 @@
     <label for = "peace-scroll">Scrolling Value</label>
     <input id ="peace-scroll" type = "text">
              </div>
-<img src = '../static/handgraphics/peace.png' style = "width:100px; margin-left:50px;">
+<img src = "{{ url_for('static', filename='handgraphics/peace.jpeg') }}" style = "width:100px; margin-left:50px;">
     </div>
     <div class = "box">
 <div class = "hand-input">
@@ -86,7 +86,7 @@
     <label for = "pinch1-scroll">Scrolling Value</label>
     <input id ="pinch1-scroll" type = "text">
              </div>
-<img src = '../static/handgraphics/pinch1.png' style = "width:100px; margin-left:50px;">
+<img src = "{{ url_for('static', filename='handgraphics/pinch1.jpg') }}" style = "width:150px; margin-left:50px;">
     </div>
        <div class = "box">
 <div class = "hand-input">
@@ -102,7 +102,7 @@
     <label for = "pinch2-scroll">Scrolling Value</label>
     <input id ="pinch2-scroll" type = "text">
              </div>
-<img src = '../static/handgraphics/pinch2.png' style = "width:100px; margin-left:50px;">
+<img src = "{{ url_for('static', filename='handgraphics/pinch2.jpg') }}" style = "width:100px; margin-left:50px;">
     </div>
     <div class = "box">
 <div class = "hand-input">
@@ -118,7 +118,7 @@
     <label for = "rocker-scroll">Scrolling Value</label>
     <input id ="rocker-scroll" type = "text">
              </div>
-<img src = '../static/handgraphics/rocker.png' style = "width:100px; margin-left:50px;">
+<img src = "{{ url_for('static', filename='handgraphics/rocker.jpg') }}" style = "width:150px; margin-left:50px;">
     </div>
     <div class = "box">
 <div class = "hand-input">
@@ -134,7 +134,7 @@
     <label for = "call-scroll">Scrolling Value</label>
     <input id ="call-scroll" type = "text">
              </div>
-<img src = '../static/handgraphics/call.png' style = "width:100px; margin-left:50px;">
+<img src = "{{ url_for('static', filename='handgraphics/call.jpg') }}" style = "width:150px; margin-left:50px;">
     </div>
         <div class = "box">
 <div class = "hand-input">
@@ -163,8 +163,14 @@
 <script>
 
 document.addEventListener("DOMContentLoaded", () => {
-  const webcam_off = document.getElementById('webcam');
+
+    const webcam_off = document.getElementById('webcam');
   const toggleButton = document.getElementById('toggle-webcam');
+
+    function refreshWebcam() {
+        webcam_off.src = '/video_feed?rand=' + Math.random();
+    }
+    setInterval(refreshWebcam, 100);
 
   toggleButton.addEventListener('change', () => {
     if (toggleButton.checked) {
@@ -184,7 +190,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Load saved keybinds
   fetch('/api/load')
     .then(res => res.json())
     .then(data => {
@@ -199,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (valueInput && data[key]) {
           valueInput.value = data[key].value || 'b';
         }
-        if(repeatInput && data[key] && data[key].repeat == true){
+        if(repeatInput && data[key] && data[key].repeat == 'true'){
            repeatInput.checked = true
         }
         if (scrollInput && data[key]) {
